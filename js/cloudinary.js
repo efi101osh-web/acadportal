@@ -22,7 +22,7 @@ async function uploadFileToCloudinary(file, folder = "acadportal", onProgress = 
   formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
   formData.append("folder", folder);
 
-  // Cloudinary needs raw format for non-image files (pdf, docx, etc.)
+  // Use "raw" for documents, "image" for images
   const isImage = file.type.startsWith("image/");
   const resourceType = isImage ? "image" : "raw";
 
@@ -45,8 +45,16 @@ async function uploadFileToCloudinary(file, folder = "acadportal", onProgress = 
     xhr.onload = function () {
       if (xhr.status === 200) {
         const data = JSON.parse(xhr.responseText);
+
+        // Fix URL for raw files so they are publicly accessible
+        // Add fl_attachment flag so PDFs and docs download/open directly
+        let fileUrl = data.secure_url;
+        if (resourceType === "raw") {
+          fileUrl = data.secure_url.replace("/raw/upload/", "/raw/upload/fl_attachment/");
+        }
+
         resolve({
-          url: data.secure_url,
+          url: fileUrl,
           publicId: data.public_id,
           fileName: file.name,
           fileSize: file.size,
@@ -66,18 +74,11 @@ async function uploadFileToCloudinary(file, folder = "acadportal", onProgress = 
 
 // =============================================
 // DELETE A FILE FROM CLOUDINARY
-// NOTE: Deletion from frontend requires the
-// Cloudinary API secret which should NOT be
-// exposed. For now files are just dereferenced
-// (removed from Firestore). You can bulk-delete
-// unused files from your Cloudinary dashboard.
+// Deletion from unsigned frontend not supported
+// Go to Cloudinary Media Library to delete files
 // =============================================
 async function deleteFileFromCloudinary(publicId) {
-  // Deletion from unsigned frontend is not supported by Cloudinary for security reasons.
-  // The file will be orphaned in Cloudinary but removed from Firestore.
-  // You can manually delete orphaned files from:
-  // cloudinary.com → Media Library → select files → delete
-  console.log("Note: File removed from database. To delete from Cloudinary storage, go to your Cloudinary Media Library and delete:", publicId);
+  console.log("To fully delete this file, go to Cloudinary Media Library:", publicId);
   return true;
 }
 
