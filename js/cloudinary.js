@@ -1,16 +1,11 @@
 // =============================================
 // ACADPORTAL — CLOUDINARY UPLOAD HELPER
-// Replaces Firebase Storage — free, no card
 // js/cloudinary.js
 // =============================================
 
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET, MAX_FILE_SIZE_BYTES } from "./firebase-config.js";
 import { validateFile } from "./utils.js";
 
-// =============================================
-// UPLOAD A FILE TO CLOUDINARY
-// Returns: { url, publicId, fileName, fileSize, fileType }
-// =============================================
 async function uploadFileToCloudinary(file, folder = "acadportal", onProgress = null) {
   if (!file) throw new Error("No file provided.");
 
@@ -22,22 +17,19 @@ async function uploadFileToCloudinary(file, folder = "acadportal", onProgress = 
   formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
   formData.append("folder", folder);
 
-  // Use "raw" for documents, "image" for images
-  const isImage = file.type.startsWith("image/");
-  const resourceType = isImage ? "image" : "raw";
-
-  const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
+  // Use "auto" for ALL file types — Cloudinary handles PDFs, DOCX, images automatically
+  // This avoids the 401 error that "raw" resource type causes
+  const resourceType = "auto";
+  const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", url);
 
-    // Progress tracking
     if (onProgress) {
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
-          const pct = Math.round((e.loaded / e.total) * 100);
-          onProgress(pct);
+          onProgress(Math.round((e.loaded / e.total) * 100));
         }
       };
     }
@@ -45,40 +37,30 @@ async function uploadFileToCloudinary(file, folder = "acadportal", onProgress = 
     xhr.onload = function () {
       if (xhr.status === 200) {
         const data = JSON.parse(xhr.responseText);
-
-        // Fix URL for raw files so they are publicly accessible
-        // Add fl_attachment flag so PDFs and docs download/open directly
-        let fileUrl = data.secure_url;
-        if (resourceType === "raw") {
-          fileUrl = data.secure_url.replace("/raw/upload/", "/raw/upload/fl_attachment/");
-        }
-
         resolve({
-          url: fileUrl,
+          url: data.secure_url,
           publicId: data.public_id,
           fileName: file.name,
           fileSize: file.size,
           fileType: file.type,
-          resourceType
+          resourceType: data.resource_type
         });
       } else {
-        const err = JSON.parse(xhr.responseText);
-        reject(new Error(err.error?.message || "Upload failed. Check your Cloudinary preset settings."));
+        let errMsg = "Upload failed.";
+        try { errMsg = JSON.parse(xhr.responseText).error?.message || errMsg; } catch(e) {}
+        reject(new Error(errMsg));
       }
     };
 
-    xhr.onerror = () => reject(new Error("Network error during upload. Check your internet connection."));
+    xhr.onerror = () => reject(new Error("Network error. Check your internet connection."));
     xhr.send(formData);
   });
 }
 
-// =============================================
-// DELETE A FILE FROM CLOUDINARY
-// Deletion from unsigned frontend not supported
-// Go to Cloudinary Media Library to delete files
-// =============================================
 async function deleteFileFromCloudinary(publicId) {
-  console.log("To fully delete this file, go to Cloudinary Media Library:", publicId);
+  // Deletion from frontend not supported securely
+  // Go to Cloudinary Media Library to delete files manually
+  console.log("Delete from Cloudinary Media Library:", publicId);
   return true;
 }
 
