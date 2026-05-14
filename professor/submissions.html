@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Submissions — AcadPortal Professor</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/professor.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div id="spinner-overlay" class="spinner-overlay" style="display:none"><div class="spinner"></div></div>
+
+  <!-- VIEW TEXT SUBMISSION MODAL -->
+  <div class="modal-backdrop" id="text-modal">
+    <div class="modal" style="max-width:600px">
+      <div class="modal-header"><h3 id="text-modal-title">📄 Text Submission</h3><button class="modal-close" onclick="closeModal('text-modal')">✕</button></div>
+      <div class="modal-body"><div id="text-modal-content" style="white-space:pre-wrap;font-size:14px;color:var(--text-mid);line-height:1.7;background:var(--bg);padding:16px;border-radius:8px;max-height:400px;overflow-y:auto"></div></div>
+      <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('text-modal')">Close</button></div>
+    </div>
+  </div>
+
+  <div class="prof-layout">
+    <nav class="prof-navbar">
+      <a href="dashboard.html" class="navbar-brand"><div class="navbar-brand-icon">A</div><span class="navbar-brand-text">Acad<em>Portal</em></span></a>
+      <div class="navbar-nav">
+        <a href="dashboard.html" class="navbar-nav-link">🏠 Dashboard</a>
+        <a href="courses.html" class="navbar-nav-link">📘 Courses</a>
+        <a href="notes.html" class="navbar-nav-link">📚 Notes</a>
+        <a href="assignments.html" class="navbar-nav-link">📝 Assignments</a>
+        <a href="submissions.html" class="navbar-nav-link active">📤 Submissions</a>
+        <a href="students.html" class="navbar-nav-link">👥 Students</a>
+        <a href="scores-archive.html" class="navbar-nav-link">🎯 Archive</a>
+        <a href="storage.html" class="navbar-nav-link">💾 Storage</a>
+      </div>
+      <div class="navbar-right">
+        <div class="navbar-prof-badge"><div class="prof-avatar">P</div><div><span class="prof-name">Professor</span><span class="prof-role">Administrator</span></div></div>
+        <button class="navbar-logout-btn" onclick="handleLogout()">🚪 Logout</button>
+      </div>
+      <button class="navbar-mobile-toggle" onclick="toggleMobileNav()">☰</button>
+    </nav>
+    <div class="navbar-mobile-menu" id="mobile-nav">
+      <a href="dashboard.html" class="navbar-nav-link">🏠 Dashboard</a>
+      <a href="assignments.html" class="navbar-nav-link">📝 Assignments</a>
+      <a href="submissions.html" class="navbar-nav-link active">📤 Submissions</a>
+    </div>
+
+    <div class="prof-content">
+      <h2 class="section-title">📤 Student Submissions</h2>
+      <div class="filter-row">
+        <div class="search-bar" style="flex:1;max-width:300px">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" class="form-control" placeholder="Search by name, matric..." oninput="filterSubs()" />
+        </div>
+        <select id="filter-assignment" class="form-control" onchange="filterSubs()">
+          <option value="">All Assignments</option>
+        </select>
+        <select id="filter-level" class="form-control" onchange="filterSubs()">
+          <option value="">All Levels</option>
+          <option value="100">100 Level</option>
+          <option value="200">200 Level</option>
+          <option value="300">300 Level</option>
+          <option value="400">400 Level</option>
+          <option value="500">500 Level</option>
+          <option value="Postgraduate">Postgraduate</option>
+          <option value="PhD">PhD</option>
+        </select>
+        <select id="filter-graded" class="form-control" onchange="filterSubs()">
+          <option value="">All</option>
+          <option value="no">Pending Grade</option>
+          <option value="yes">Graded</option>
+        </select>
+        <span id="sub-count" style="font-size:13px;font-weight:600;color:var(--text-muted)"></span>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div id="submissions-container">
+          <div class="text-center" style="padding:60px"><div class="spinner-inline"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { requireAuth, logoutUser } from "../js/auth.js";
+    import { getSubmissions, gradeSubmission, deleteSubmission, getAssignments } from "../js/professor.js";
+    import { showToast, showSpinner, hideSpinner, openModal, closeModal, formatDateTime, formatLevel, getFileIcon, confirmAction } from "../js/utils.js";
+
+    window.openModal = openModal; window.closeModal = closeModal;
+    let allSubs = [], allAssignments = [];
+    // Track pending grade inputs in memory
+    const pendingGrades = {};
+
+    async function init() {
+      try {
+        await requireAuth("professor");
+        // Check URL param for assignment filter
+        const urlParams = new URLSearchParams(window.location.search);
+        const assignFilter = urlParams.get("assignment");
+        [allSubs, allAssignments] = await Promise.all([getSubmissions(), getAssignments()]);
+        populateAssignmentFilter();
+        if (assignFilter) document.getElementById("filter-assignment").value = assignFilter;
+        filterSubs();
+      } catch(e) {}
+    }
+
+    function populateAssignmentFilter() {
+      const sel = document.getElementById("filter-assignment");
+      sel.innerHTML = `<option value="">All Assignments</option>` + allAssignments.map(a => `<option value="${a.id}">${a.courseCode}: ${a.title.slice(0,40)}</option>`).join("");
+    }
+
+    function renderSubs(subs) {
+      document.getElementById("sub-count").textContent = `${subs.length} submission${subs.length !== 1 ? "s" : ""}`;
+      const el = document.getElementById("submissions-container");
+      if (!subs.length) { el.innerHTML = `<div class="empty-state"><span class="empty-icon">📤</span><h4>No submissions found</h4></div>`; return; }
+      el.innerHTML = `<div class="table-wrap" style="border:none;border-radius:0"><table>
+        <thead><tr>
+          <th>Student</th><th>Matric</th><th>Dept / Level</th>
+          <th>Assignment</th><th>Submitted</th><th>File / Text</th>
+          <th>Score</th><th>Remark</th><th>Actions</th>
+        </tr></thead>
+        <tbody>
+        ${subs.map(s => `
+          <tr class="${s.isLate ? "submission-row-late" : ""}" id="row-${s.id}">
+            <td><strong>${s.studentName}</strong></td>
+            <td style="font-size:12px">${s.matricNumber}</td>
+            <td style="font-size:12px">${s.department}<br><span class="badge badge-gold" style="font-size:10px">${formatLevel(s.studentLevel)}</span></td>
+            <td>
+              <strong style="font-size:12px">${s.courseCode}</strong>
+              <div style="font-size:11px;color:var(--text-muted)">${s.assignmentTitle?.slice(0,40)}</div>
+              ${s.isLate ? `<span class="badge badge-late" style="font-size:10px;margin-top:3px">⏰ LATE</span>` : `<span class="badge badge-success" style="font-size:10px;margin-top:3px">On Time</span>`}
+            </td>
+            <td style="font-size:12px">${formatDateTime(s.submittedAt)}</td>
+            <td>
+              ${s.fileUrl ? `<a href="${s.fileUrl}" target="_blank" class="btn btn-outline btn-sm">${getFileIcon(s.fileName)} Download</a>` : ""}
+              ${s.textContent ? `<button class="btn btn-outline btn-sm" onclick="viewText('${s.id}', '${s.studentName.replace(/'/g,"\\'")}')">📄 View Text</button>` : ""}
+              ${!s.fileUrl && !s.textContent ? "—" : ""}
+            </td>
+            <td>
+              <input type="number" class="grade-input" id="score-${s.id}" value="${s.graded ? s.score : ""}" placeholder="e.g. 85" min="0" max="100" onchange="trackGrade('${s.id}')" />
+            </td>
+            <td>
+              <input type="text" class="remark-input" id="remark-${s.id}" value="${s.remark || ""}" placeholder="Optional remark" onchange="trackGrade('${s.id}')" />
+            </td>
+            <td>
+              <div style="display:flex;gap:5px;flex-direction:column">
+                <button class="btn btn-success btn-sm" onclick="submitGrade('${s.id}')">
+                  ${s.graded ? "🔄 Update" : "✅ Grade"}
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="deleteSub('${s.id}', '${s.studentName.replace(/'/g,"\\'")}')">🗑 Delete</button>
+              </div>
+            </td>
+          </tr>`).join("")}
+        </tbody></table></div>`;
+    }
+
+    window.filterSubs = function() {
+      const q = document.getElementById("search-input").value.toLowerCase();
+      const assignId = document.getElementById("filter-assignment").value;
+      const level = document.getElementById("filter-level").value;
+      const graded = document.getElementById("filter-graded").value;
+      let f = allSubs;
+      if (q) f = f.filter(s => s.studentName.toLowerCase().includes(q) || s.matricNumber.toLowerCase().includes(q));
+      if (assignId) f = f.filter(s => s.assignmentId === assignId);
+      if (level) f = f.filter(s => s.studentLevel === level);
+      if (graded === "yes") f = f.filter(s => s.graded);
+      if (graded === "no") f = f.filter(s => !s.graded);
+      renderSubs(f);
+    };
+
+    window.trackGrade = function(id) { pendingGrades[id] = true; };
+
+    window.submitGrade = async function(subId) {
+      const score = document.getElementById(`score-${subId}`)?.value;
+      const remark = document.getElementById(`remark-${subId}`)?.value || "";
+      if (score === "" || score === null || score === undefined) { showToast("Enter a score before grading.", "error"); return; }
+      showSpinner();
+      try {
+        await gradeSubmission(subId, score, remark);
+        hideSpinner();
+        showToast("Grade saved! Student notified.", "success");
+        // Update local data
+        const s = allSubs.find(x => x.id === subId);
+        if (s) { s.graded = true; s.score = parseFloat(score); s.remark = remark; }
+        filterSubs();
+      } catch(e) {
+        hideSpinner(); showToast(e.message, "error");
+      }
+    };
+
+    window.viewText = function(subId, name) {
+      const s = allSubs.find(x => x.id === subId);
+      if (!s?.textContent) return;
+      document.getElementById("text-modal-title").textContent = `📄 ${name}'s Submission`;
+      document.getElementById("text-modal-content").textContent = s.textContent;
+      openModal("text-modal");
+    };
+
+    window.deleteSub = function(id, name) {
+      confirmAction(`Delete submission by "${name}"? This action cannot be undone.`, async () => {
+        showSpinner();
+        try {
+          await deleteSubmission(id);
+          hideSpinner(); showToast("Submission deleted.", "success");
+          allSubs = allSubs.filter(s => s.id !== id);
+          filterSubs();
+        } catch(e) { hideSpinner(); showToast(e.message, "error"); }
+      });
+    };
+
+    window.handleLogout = async () => { await logoutUser(); window.location.href = "/professor/login.html"; };
+    window.toggleMobileNav = () => document.getElementById("mobile-nav").classList.toggle("open");
+    init();
+  </script>
+</body>
+</html>

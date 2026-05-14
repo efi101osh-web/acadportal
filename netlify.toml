@@ -1,0 +1,46 @@
+# =============================================
+# ACADPORTAL — NETLIFY CONFIGURATION
+# File: netlify.toml
+# Place this in the ROOT of your project folder
+# =============================================
+
+[build]
+  publish = "."
+
+# ---- SPA REDIRECT RULES ----
+# These make sure page refreshes don't break
+[[redirects]]
+  from = "/student/*"
+  to = "/student/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/professor/*"
+  to = "/professor/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# ---- SECURITY HEADERS ----
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# ---- CACHE: JS/CSS FILES ----
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"

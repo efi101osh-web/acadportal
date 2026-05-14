@@ -1,0 +1,251 @@
+/* =============================================
+   ACADPORTAL — AUTH CSS (Login & Register)
+   ============================================= */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0a1e45 0%, #0d2b5e 50%, #1a3a8a 100%);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background geometric decorations */
+.auth-page::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(201,150,42,0.12) 0%, transparent 70%);
+  top: -200px; right: -200px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.auth-page::after {
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(201,150,42,0.08) 0%, transparent 70%);
+  bottom: -150px; left: -100px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* ---- AUTH CARD ---- */
+.auth-card {
+  display: flex;
+  width: 100%;
+  max-width: 900px;
+  min-height: 560px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.5);
+  position: relative;
+  z-index: 1;
+  animation: cardAppear 0.5s ease;
+}
+@keyframes cardAppear {
+  from { transform: translateY(30px) scale(0.97); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* ---- LEFT PANEL (Form) ---- */
+.auth-left {
+  flex: 1;
+  background: #ffffff;
+  padding: 48px 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.auth-left-scroll {
+  flex: 1;
+  background: #ffffff;
+  padding: 36px 44px;
+  overflow-y: auto;
+}
+
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+.auth-logo .logo-icon {
+  width: 42px; height: 42px;
+  background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gold); font-size: 20px; font-weight: 800;
+  font-family: 'Playfair Display', serif;
+}
+.auth-logo span {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; color: var(--navy); font-weight: 700;
+}
+.auth-logo span em { color: var(--gold); font-style: normal; }
+
+.auth-title { font-size: 28px; color: var(--navy); margin-bottom: 6px; }
+.auth-subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 28px; font-family: 'Nunito', sans-serif; font-weight: 500; }
+
+.auth-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 20px 0; color: var(--text-muted); font-size: 13px;
+}
+.auth-divider::before, .auth-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+.auth-footer-link {
+  text-align: center; margin-top: 20px;
+  font-size: 14px; color: var(--text-muted);
+}
+.auth-footer-link a { color: var(--navy); font-weight: 700; }
+.auth-footer-link a:hover { color: var(--gold); }
+
+.show-password-wrap {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 18px; cursor: pointer;
+}
+.show-password-wrap input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--navy); }
+.show-password-wrap label { font-size: 13px; color: var(--text-mid); cursor: pointer; font-weight: 500; }
+
+.forgot-wrap { text-align: right; margin-top: -10px; margin-bottom: 18px; }
+.forgot-wrap a { font-size: 13px; color: var(--navy-light); font-weight: 600; }
+
+/* ---- RIGHT PANEL (Brand) ---- */
+.auth-right {
+  width: 340px;
+  flex-shrink: 0;
+  background: linear-gradient(160deg, var(--navy-dark) 0%, var(--navy) 40%, var(--navy-mid) 100%);
+  padding: 48px 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-right::before {
+  content: '';
+  position: absolute;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(201,150,42,0.18) 0%, transparent 65%);
+  top: -80px; right: -80px;
+  border-radius: 50%;
+}
+
+.auth-brand {
+  text-align: center;
+  position: relative; z-index: 1;
+}
+
+.auth-brand-logo {
+  width: 90px; height: 90px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  border-radius: 22px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 24px;
+  box-shadow: 0 8px 30px rgba(201,150,42,0.4);
+}
+.auth-brand-logo .logo-letter {
+  font-family: 'Playfair Display', serif;
+  font-size: 38px; font-weight: 700;
+  color: var(--navy-dark);
+}
+
+.auth-brand h2 {
+  color: var(--white);
+  font-size: 24px; margin-bottom: 6px;
+}
+.auth-brand h2 span { color: var(--gold-light); }
+
+.auth-brand .univ-name {
+  color: rgba(255,255,255,0.75);
+  font-size: 14px; font-weight: 500;
+  margin-bottom: 28px; line-height: 1.5;
+}
+
+.auth-brand-desc {
+  color: rgba(255,255,255,0.65);
+  font-size: 13.5px; line-height: 1.7;
+  text-align: center; margin-bottom: 32px;
+}
+
+.auth-home-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.12);
+  border: 1.5px solid rgba(255,255,255,0.25);
+  color: var(--white); padding: 11px 24px;
+  border-radius: var(--radius-sm);
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: var(--transition);
+  text-decoration: none;
+}
+.auth-home-btn:hover {
+  background: rgba(255,255,255,0.2);
+  border-color: var(--gold-light); color: var(--gold-light);
+  transform: translateY(-2px);
+}
+
+/* Feature dots */
+.auth-features { margin-top: 28px; display: flex; flex-direction: column; gap: 10px; }
+.auth-feature-item {
+  display: flex; align-items: center; gap: 10px;
+  color: rgba(255,255,255,0.7); font-size: 13px;
+}
+.auth-feature-item::before {
+  content: '';
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--gold-light); flex-shrink: 0;
+}
+
+/* ---- REGISTER CARD (wider) ---- */
+.auth-card.register-card { max-width: 960px; }
+.register-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+
+/* ---- STEPS BAR (register) ---- */
+.steps-bar {
+  display: flex; align-items: center; gap: 0;
+  margin-bottom: 28px;
+}
+.step-item {
+  display: flex; align-items: center; flex: 1;
+  position: relative;
+}
+.step-circle {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 2px solid var(--border); background: var(--white);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: var(--text-muted);
+  z-index: 1; flex-shrink: 0;
+}
+.step-item.active .step-circle {
+  background: var(--navy); border-color: var(--navy); color: var(--white);
+}
+.step-item.done .step-circle {
+  background: var(--success); border-color: var(--success); color: var(--white);
+}
+.step-line { flex: 1; height: 2px; background: var(--border); }
+.step-item.done .step-line { background: var(--success); }
+.step-item.active .step-line { background: linear-gradient(to right, var(--navy), var(--border)); }
+
+/* ---- RESPONSIVE AUTH ---- */
+@media (max-width: 768px) {
+  .auth-right { display: none; }
+  .auth-card { max-width: 480px; }
+  .auth-left, .auth-left-scroll { padding: 36px 28px; }
+  .register-grid { grid-template-columns: 1fr; gap: 0; }
+  .auth-card.register-card { max-width: 480px; }
+}
+
+@media (max-width: 480px) {
+  .auth-left, .auth-left-scroll { padding: 28px 20px; }
+  .auth-page { padding: 12px; }
+  .auth-title { font-size: 24px; }
+}

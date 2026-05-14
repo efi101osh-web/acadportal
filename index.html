@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AcadPortal — University of Calabar</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    /* ---- LANDING PAGE SPECIFIC ---- */
+    body { background: #081e44; }
+    
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      background: linear-gradient(160deg, #060f25 0%, #0d2b5e 45%, #122e6a 100%);
+      display: flex; flex-direction: column; overflow: hidden; position: relative;
+    }
+    .hero::before {
+      content: ''; position: absolute; width: 900px; height: 900px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,150,42,0.1) 0%, transparent 65%);
+      top: -300px; right: -200px; pointer-events: none;
+    }
+    .hero::after {
+      content: ''; position: absolute; width: 600px; height: 600px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(30,77,160,0.25) 0%, transparent 65%);
+      bottom: -200px; left: -100px; pointer-events: none;
+    }
+    
+    /* NAVBAR */
+    .landing-nav {
+      display: flex; align-items: center; padding: 22px 60px;
+      position: relative; z-index: 10;
+    }
+    .landing-logo {
+      display: flex; align-items: center; gap: 12px; flex: 1;
+      text-decoration: none;
+    }
+    .landing-logo-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Playfair Display', serif; font-size: 20px;
+      font-weight: 700; color: #081e44;
+    }
+    .landing-logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px; color: #fff; font-weight: 700;
+    }
+    .landing-logo-text em { color: var(--gold-light); font-style: normal; }
+    .landing-nav-links { display: flex; align-items: center; gap: 8px; }
+    .landing-nav-link {
+      color: rgba(255,255,255,0.65); font-size: 14px; font-weight: 600;
+      padding: 9px 18px; border-radius: 8px; text-decoration: none;
+      transition: all 0.25s; border: 1.5px solid transparent;
+    }
+    .landing-nav-link:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .landing-nav-link.cta {
+      border-color: var(--gold); color: var(--gold-light);
+      background: rgba(201,150,42,0.1);
+    }
+    .landing-nav-link.cta:hover { background: var(--gold); color: #081e44; }
+    
+    /* HERO CONTENT */
+    .hero-content {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 60px 60px 80px; position: relative; z-index: 5;
+    }
+    .hero-text { max-width: 660px; text-align: center; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(201,150,42,0.15); border: 1px solid rgba(201,150,42,0.3);
+      color: var(--gold-light); padding: 7px 18px; border-radius: 30px;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
+      margin-bottom: 24px;
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(40px, 6vw, 68px); color: #fff; font-weight: 700;
+      line-height: 1.1; margin-bottom: 20px;
+    }
+    .hero-title span { color: var(--gold-light); }
+    .hero-desc {
+      font-size: 17px; color: rgba(255,255,255,0.65); line-height: 1.7;
+      margin-bottom: 40px; max-width: 520px; margin-left: auto; margin-right: auto;
+    }
+    .hero-buttons { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+    .hero-btn {
+      display: inline-flex; align-items: center; gap: 9px;
+      padding: 14px 30px; border-radius: 10px;
+      font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800;
+      text-decoration: none; transition: all 0.25s; border: none; cursor: pointer;
+    }
+    .hero-btn-gold {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: #081e44; box-shadow: 0 6px 24px rgba(201,150,42,0.4);
+    }
+    .hero-btn-gold:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(201,150,42,0.5); color: #081e44; }
+    .hero-btn-outline {
+      background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.25);
+      color: #fff;
+    }
+    .hero-btn-outline:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.5); transform: translateY(-2px); color: #fff; }
+    
+    /* SCROLL HINT */
+    .scroll-hint {
+      text-align: center; padding: 20px 0 40px;
+      color: rgba(255,255,255,0.35); font-size: 13px;
+      animation: bounce 2s infinite; position: relative; z-index: 5;
+    }
+    @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+    
+    /* FEATURES SECTION */
+    .features-section {
+      background: #f0f4f9; padding: 80px 60px;
+    }
+    .section-label {
+      text-align: center; font-size: 13px; font-weight: 800;
+      color: var(--gold); letter-spacing: 2px; text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .section-heading {
+      text-align: center; font-family: 'Playfair Display', serif;
+      font-size: clamp(28px, 4vw, 42px); color: var(--navy);
+      margin-bottom: 12px;
+    }
+    .section-sub {
+      text-align: center; font-size: 15px; color: var(--text-muted);
+      max-width: 540px; margin: 0 auto 56px; line-height: 1.7;
+    }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px; max-width: 1100px; margin: 0 auto;
+    }
+    .feature-card {
+      background: #fff; border-radius: 16px; padding: 28px;
+      border: 1px solid var(--border); transition: all 0.25s;
+      position: relative; overflow: hidden;
+    }
+    .feature-card:hover { box-shadow: 0 12px 40px rgba(13,43,94,0.12); transform: translateY(-3px); }
+    .feature-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--navy), var(--gold));
+    }
+    .feature-icon {
+      width: 56px; height: 56px; border-radius: 14px; margin-bottom: 18px;
+      display: flex; align-items: center; justify-content: center; font-size: 24px;
+    }
+    .feature-icon.navy { background: linear-gradient(135deg, var(--navy), var(--navy-mid)); }
+    .feature-icon.gold { background: linear-gradient(135deg, var(--gold), var(--gold-light)); }
+    .feature-icon.green { background: linear-gradient(135deg, #1db87a, #2dd68a); }
+    .feature-card h3 { font-size: 17px; margin-bottom: 10px; color: var(--navy); font-family: 'Nunito', sans-serif; font-weight: 800; }
+    .feature-card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+    
+    /* PORTALS SECTION */
+    .portals-section {
+      background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 100%);
+      padding: 80px 60px;
+    }
+    .portals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; max-width: 900px; margin: 0 auto; }
+    .portal-card {
+      border-radius: 16px; padding: 32px; border: 1.5px solid;
+      transition: all 0.25s; text-align: center;
+    }
+    .portal-card.prof { border-color: rgba(201,150,42,0.3); background: rgba(201,150,42,0.08); }
+    .portal-card.student { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); }
+    .portal-card:hover { transform: translateY(-4px); }
+    .portal-card.prof:hover { background: rgba(201,150,42,0.15); border-color: var(--gold); }
+    .portal-card.student:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.4); }
+    .portal-emoji { font-size: 48px; margin-bottom: 16px; display: block; }
+    .portal-card h3 { font-family: 'Playfair Display', serif; font-size: 22px; margin-bottom: 10px; }
+    .portal-card.prof h3 { color: var(--gold-light); }
+    .portal-card.student h3 { color: #fff; }
+    .portal-card p { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 24px; }
+    .portal-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 26px; border-radius: 8px;
+      font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 800;
+      text-decoration: none; transition: all 0.25s;
+    }
+    .portal-btn-gold { background: var(--gold); color: #081e44; }
+    .portal-btn-gold:hover { background: var(--gold-light); color: #081e44; transform: translateY(-1px); }
+    .portal-btn-white { background: rgba(255,255,255,0.15); color: #fff; border: 1.5px solid rgba(255,255,255,0.3); }
+    .portal-btn-white:hover { background: rgba(255,255,255,0.25); color: #fff; transform: translateY(-1px); }
+
+    /* FOOTER */
+    .landing-footer {
+      background: #060f25; padding: 28px 60px;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    }
+    .footer-brand { font-family: 'Playfair Display', serif; font-size: 16px; color: rgba(255,255,255,0.5); }
+    .footer-brand em { color: var(--gold-light); font-style: normal; }
+    .footer-right { font-size: 13px; color: rgba(255,255,255,0.3); }
+    
+    @media (max-width: 768px) {
+      .landing-nav { padding: 18px 20px; }
+      .hero-content { padding: 40px 20px 60px; }
+      .features-section, .portals-section { padding: 60px 20px; }
+      .portals-grid { grid-template-columns: 1fr; }
+      .landing-footer { padding: 20px; justify-content: center; text-align: center; }
+      .landing-nav-links .landing-nav-link:not(.cta) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <!-- HERO -->
+  <section class="hero">
+    <nav class="landing-nav">
+      <a href="index.html" class="landing-logo">
+        <div class="landing-logo-icon">A</div>
+        <span class="landing-logo-text">Acad<em>Portal</em></span>
+      </a>
+      <div class="landing-nav-links">
+        <a href="#features" class="landing-nav-link">Features</a>
+        <a href="student/login.html" class="landing-nav-link">Student Login</a>
+        <a href="student/register.html" class="landing-nav-link cta">Register</a>
+      </div>
+    </nav>
+    
+    <div class="hero-content">
+      <div class="hero-text">
+        <div class="hero-eyebrow">🎓 University of Calabar — Academic Portal</div>
+        <h1 class="hero-title">Where Learning<br/>Meets <span>Organisation</span></h1>
+        <p class="hero-desc">
+          AcadPortal connects professors and students in one seamless platform — upload notes, manage assignments, track submissions, and view grades all in one place.
+        </p>
+        <div class="hero-buttons">
+          <a href="student/register.html" class="hero-btn hero-btn-gold">📚 Student Register</a>
+          <a href="student/login.html" class="hero-btn hero-btn-outline">🔑 Student Login</a>
+        </div>
+      </div>
+    </div>
+    <div class="scroll-hint">↓ Scroll to explore</div>
+  </section>
+  
+  <!-- FEATURES -->
+  <section class="features-section" id="features">
+    <p class="section-label">What We Offer</p>
+    <h2 class="section-heading">Everything you need in one place</h2>
+    <p class="section-sub">Built for the University of Calabar — a modern academic management system for one professor and all students.</p>
+    
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon navy">📚</div>
+        <h3>Lecture Notes</h3>
+        <p>Professor uploads PDFs, DOCX, PPT and more. Students download by level — you only see what's meant for you.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon gold">📝</div>
+        <h3>Assignments & Deadlines</h3>
+        <p>Assignments posted with clear deadlines. Submit files or text, re-upload before deadline, and get your score immediately after grading.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon green">🎯</div>
+        <h3>Scores & Feedback</h3>
+        <p>Grades and remarks go live the moment the professor saves them. All scores are archived by course and level.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon navy">🔔</div>
+        <h3>Smart Notifications</h3>
+        <p>Get notified in-app whenever a new note or assignment is uploaded for your level. Never miss an update.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon gold">🔒</div>
+        <h3>Private & Secure</h3>
+        <p>Students only see their own submissions. No one else can access your work, scores, or profile data.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon green">📱</div>
+        <h3>Mobile Friendly</h3>
+        <p>Fully responsive — works on your phone, tablet, or laptop with a clean modern interface built for students.</p>
+      </div>
+    </div>
+  </section>
+  
+  <!-- PORTALS -->
+  <section class="portals-section" id="portals">
+    <p class="section-label" style="color:var(--gold-light)">Two Portals</p>
+    <h2 class="section-heading" style="color:#fff">Choose your access</h2>
+    <p class="section-sub" style="color:rgba(255,255,255,0.55)">One platform, two experiences — designed specifically for professor and students.</p>
+    
+    <div class="portals-grid">
+      <div class="portal-card prof">
+        <span class="portal-emoji">👨‍🏫</span>
+        <h3>Professor Portal</h3>
+        <p>Upload notes and assignments, manage submissions, grade students, monitor who submitted, and track storage — all from a clean dashboard.</p>
+        <a href="professor/login.html" class="portal-btn portal-btn-gold">Professor Login →</a>
+      </div>
+      <div class="portal-card student">
+        <span class="portal-emoji">🎓</span>
+        <h3>Student Portal</h3>
+        <p>Register with your details, view notes and assignments for your level, submit assignments, and check your scores and remarks.</p>
+        <a href="student/register.html" class="portal-btn portal-btn-white">Student Register →</a>
+      </div>
+    </div>
+  </section>
+  
+  <!-- FOOTER -->
+  <footer class="landing-footer">
+    <div class="footer-brand">Acad<em>Portal</em> — University of Calabar</div>
+    <div class="footer-right">Built with Firebase • GitHub • Netlify</div>
+  </footer>
+</body>
+</html>

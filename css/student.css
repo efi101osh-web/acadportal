@@ -1,0 +1,293 @@
+/* =============================================
+   ACADPORTAL — STUDENT PORTAL CSS
+   Collapsible Sidebar Layout
+   ============================================= */
+
+/* ---- LAYOUT ---- */
+.student-layout { display: flex; min-height: 100vh; }
+
+/* ---- SIDEBAR ---- */
+.sidebar {
+  width: 260px;
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--navy-dark) 0%, var(--navy) 100%);
+  display: flex; flex-direction: column;
+  position: fixed; left: 0; top: 0; bottom: 0; z-index: 200;
+  transition: width 0.3s ease;
+  box-shadow: 4px 0 20px rgba(8,30,68,0.3);
+  overflow: hidden;
+}
+.sidebar.collapsed { width: 70px; }
+
+/* Sidebar top */
+.sidebar-top {
+  padding: 20px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.sidebar-brand {
+  display: flex; align-items: center; gap: 11px;
+  text-decoration: none; overflow: hidden;
+}
+.sidebar-brand-icon {
+  width: 38px; height: 38px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; font-weight: 700; color: var(--navy-dark);
+}
+.sidebar-brand-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px; color: var(--white); font-weight: 700;
+  white-space: nowrap; overflow: hidden;
+  transition: opacity 0.25s ease, width 0.3s ease;
+}
+.sidebar-brand-text em { color: var(--gold-light); font-style: normal; }
+.sidebar.collapsed .sidebar-brand-text { opacity: 0; width: 0; }
+
+.sidebar-toggle {
+  background: rgba(255,255,255,0.1); border: none;
+  color: rgba(255,255,255,0.7); width: 30px; height: 30px;
+  border-radius: 8px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center; font-size: 16px;
+  transition: var(--transition); flex-shrink: 0;
+}
+.sidebar-toggle:hover { background: rgba(255,255,255,0.2); color: var(--white); }
+.sidebar.collapsed .sidebar-toggle { margin: 0 auto; }
+
+/* User info in sidebar */
+.sidebar-user {
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; gap: 12px;
+  overflow: hidden;
+}
+.sidebar-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 800; color: var(--navy-dark);
+  flex-shrink: 0;
+}
+.sidebar-user-info { overflow: hidden; transition: opacity 0.25s ease; }
+.sidebar-user-info .name { font-size: 13px; font-weight: 700; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-user-info .level { font-size: 11px; color: rgba(255,255,255,0.55); font-weight: 600; margin-top: 2px; }
+.sidebar.collapsed .sidebar-user-info { opacity: 0; width: 0; overflow: hidden; }
+
+/* Nav links */
+.sidebar-nav { padding: 14px 0; flex: 1; overflow-y: auto; overflow-x: hidden; }
+.nav-section-label {
+  font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.35);
+  text-transform: uppercase; letter-spacing: 1.2px;
+  padding: 10px 20px 6px;
+  white-space: nowrap; overflow: hidden;
+  transition: opacity 0.25s ease;
+}
+.sidebar.collapsed .nav-section-label { opacity: 0; }
+
+.nav-link {
+  display: flex; align-items: center; gap: 13px;
+  padding: 11px 20px; color: rgba(255,255,255,0.65);
+  font-size: 14px; font-weight: 600; text-decoration: none;
+  transition: var(--transition); position: relative;
+  white-space: nowrap; overflow: hidden;
+  border-left: 3px solid transparent;
+}
+.nav-link .nav-icon { font-size: 18px; flex-shrink: 0; width: 22px; text-align: center; }
+.nav-link .nav-text { transition: opacity 0.25s ease; }
+.sidebar.collapsed .nav-link .nav-text { opacity: 0; width: 0; overflow: hidden; }
+.sidebar.collapsed .nav-link { padding: 11px; justify-content: center; }
+.sidebar.collapsed .nav-link .nav-icon { margin: 0 auto; }
+
+.nav-link:hover { color: var(--white); background: rgba(255,255,255,0.08); border-left-color: rgba(201,150,42,0.4); }
+.nav-link.active { color: var(--white); background: rgba(255,255,255,0.13); border-left-color: var(--gold); }
+.nav-link.active .nav-icon { color: var(--gold-light); }
+
+/* Notif badge on nav */
+.nav-link .nav-badge {
+  margin-left: auto; background: var(--gold); color: var(--navy-dark);
+  font-size: 10px; font-weight: 800; padding: 2px 7px;
+  border-radius: 10px; flex-shrink: 0;
+}
+.sidebar.collapsed .nav-badge { display: none; }
+
+/* Tooltip on collapsed sidebar */
+.sidebar.collapsed .nav-link { position: relative; }
+.sidebar.collapsed .nav-link::after {
+  content: attr(data-title);
+  position: absolute; left: 70px; top: 50%; transform: translateY(-50%);
+  background: var(--navy-dark); color: var(--white);
+  padding: 6px 12px; border-radius: var(--radius-sm);
+  font-size: 13px; white-space: nowrap;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s ease; z-index: 999;
+  box-shadow: var(--shadow-md);
+}
+.sidebar.collapsed .nav-link:hover::after { opacity: 1; }
+
+/* Sidebar bottom */
+.sidebar-bottom {
+  padding: 16px 18px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  flex-shrink: 0;
+}
+.sidebar-logout {
+  display: flex; align-items: center; gap: 13px;
+  color: rgba(255,255,255,0.55); font-size: 14px; font-weight: 600;
+  cursor: pointer; padding: 10px 0; border: none; background: none;
+  width: 100%; transition: var(--transition); white-space: nowrap; overflow: hidden;
+}
+.sidebar.collapsed .sidebar-logout { justify-content: center; }
+.sidebar.collapsed .sidebar-logout span { display: none; }
+.sidebar-logout:hover { color: #ff8080; }
+.sidebar-logout .nav-icon { flex-shrink: 0; font-size: 18px; }
+
+/* ---- MAIN CONTENT ---- */
+.student-main {
+  margin-left: 260px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: margin-left 0.3s ease;
+}
+.sidebar.collapsed ~ .student-main { margin-left: 70px; }
+
+/* Top bar */
+.student-topbar {
+  background: var(--white);
+  border-bottom: 2px solid var(--border);
+  padding: 0 28px;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 10px rgba(13,43,94,0.06);
+}
+.topbar-left { display: flex; align-items: center; gap: 14px; }
+.topbar-page-title { font-size: 18px; font-weight: 800; color: var(--navy); font-family: 'Nunito', sans-serif; }
+.topbar-breadcrumb { font-size: 13px; color: var(--text-muted); }
+
+.topbar-right { display: flex; align-items: center; gap: 14px; }
+.topbar-notif-btn {
+  position: relative; background: none; border: none; cursor: pointer;
+  color: var(--text-muted); font-size: 20px; padding: 4px;
+  transition: var(--transition);
+}
+.topbar-notif-btn:hover { color: var(--navy); }
+.notif-count {
+  position: absolute; top: -2px; right: -4px;
+  background: var(--gold); color: var(--navy-dark);
+  width: 18px; height: 18px; border-radius: 50%;
+  font-size: 10px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.topbar-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800; color: var(--white); cursor: pointer;
+}
+
+/* ---- CONTENT AREA ---- */
+.student-content {
+  flex: 1; padding: 28px;
+  max-width: 1200px;
+}
+@media (min-width: 1400px) { .student-content { padding: 32px 36px; } }
+
+/* ---- MOBILE SIDEBAR OVERLAY ---- */
+.sidebar-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(8,30,68,0.5); z-index: 199;
+}
+.mobile-menu-btn {
+  display: none; background: none; border: none; cursor: pointer;
+  color: var(--navy); font-size: 22px; padding: 4px;
+}
+
+/* ---- WELCOME BANNER ---- */
+.welcome-banner {
+  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-mid) 100%);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: relative; overflow: hidden;
+}
+.welcome-banner::before {
+  content: '';
+  position: absolute; right: -60px; top: -60px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(201,150,42,0.2) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.welcome-banner h2 { color: var(--white); font-size: 20px; margin-bottom: 4px; }
+.welcome-banner p { color: rgba(255,255,255,0.65); font-size: 13px; font-family: 'Nunito', sans-serif; }
+.welcome-badge { background: var(--gold); color: var(--navy-dark); padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 800; }
+
+/* ---- ASSIGNMENT / NOTE CARDS ---- */
+.item-card {
+  background: var(--white); border-radius: var(--radius);
+  border: 1px solid var(--border); padding: 20px;
+  transition: var(--transition); display: flex; flex-direction: column; gap: 10px;
+}
+.item-card:hover { box-shadow: var(--shadow-md); border-color: rgba(13,43,94,0.2); }
+.item-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.item-card-header h4 { font-size: 15px; font-weight: 700; color: var(--navy); line-height: 1.3; }
+.item-card-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.item-card-meta span { font-size: 12px; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 4px; }
+.item-card-desc { font-size: 13px; color: var(--text-mid); line-height: 1.5; }
+.item-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; flex-wrap: wrap; gap: 8px; }
+
+.items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+
+/* ---- DEADLINE INDICATOR ---- */
+.deadline-bar { font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.deadline-bar.urgent { color: var(--danger); }
+.deadline-bar.soon { color: var(--warning); }
+.deadline-bar.ok { color: var(--success); }
+.deadline-bar.passed { color: var(--text-muted); }
+
+/* ---- SCORE DISPLAY ---- */
+.score-circle {
+  width: 54px; height: 54px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 800; flex-shrink: 0;
+  border: 3px solid;
+}
+.score-circle.high { color: var(--success); border-color: var(--success); background: #e6faf3; }
+.score-circle.mid { color: var(--warning); border-color: var(--warning); background: #fff8e6; }
+.score-circle.low { color: var(--danger); border-color: var(--danger); background: #fdeaea; }
+
+/* ---- NOTIFICATION LIST ---- */
+.notif-item {
+  padding: 16px 20px; border-left: 4px solid var(--border);
+  background: var(--white); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-bottom: 8px; transition: var(--transition);
+  display: flex; gap: 14px; align-items: flex-start;
+}
+.notif-item.unread { border-left-color: var(--navy); background: #f0f5ff; }
+.notif-item.unread .notif-title { font-weight: 800; }
+.notif-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--navy); margin-top: 4px; flex-shrink: 0; }
+.notif-item:not(.unread) .notif-dot { background: var(--border); }
+.notif-title { font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 3px; }
+.notif-msg { font-size: 13px; color: var(--text-mid); line-height: 1.4; }
+.notif-time { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+/* ---- RESPONSIVE STUDENT PORTAL ---- */
+@media (max-width: 900px) {
+  .sidebar { transform: translateX(-100%); width: 260px !important; }
+  .sidebar.mobile-open { transform: translateX(0); }
+  .sidebar-overlay { display: block; }
+  .student-main { margin-left: 0 !important; }
+  .mobile-menu-btn { display: flex; }
+  .student-topbar { padding: 0 16px; }
+}
+@media (max-width: 600px) {
+  .student-content { padding: 16px; }
+  .items-grid { grid-template-columns: 1fr; }
+  .welcome-banner { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .topbar-page-title { font-size: 16px; }
+}

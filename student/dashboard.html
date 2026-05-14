@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — AcadPortal Student</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/student.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div id="spinner-overlay" class="spinner-overlay" style="display:none"><div class="spinner"></div></div>
+
+  <div class="student-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <a href="dashboard.html" class="sidebar-brand">
+          <div class="sidebar-brand-icon">A</div>
+          <span class="sidebar-brand-text">Acad<em>Portal</em></span>
+        </a>
+        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+      </div>
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebar-avatar">?</div>
+        <div class="sidebar-user-info">
+          <div class="name" id="sidebar-name">Loading...</div>
+          <div class="level" id="sidebar-level">— Level</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a href="dashboard.html" class="nav-link active" data-title="Dashboard">
+          <span class="nav-icon">🏠</span><span class="nav-text">Dashboard</span>
+        </a>
+        <a href="notes.html" class="nav-link" data-title="Notes">
+          <span class="nav-icon">📚</span><span class="nav-text">Lecture Notes</span>
+        </a>
+        <a href="assignments.html" class="nav-link" data-title="Assignments">
+          <span class="nav-icon">📝</span><span class="nav-text">Assignments</span>
+        </a>
+        <div class="nav-section-label">My Records</div>
+        <a href="submissions.html" class="nav-link" data-title="Submissions">
+          <span class="nav-icon">📤</span><span class="nav-text">My Submissions</span>
+        </a>
+        <a href="scores.html" class="nav-link" data-title="Scores">
+          <span class="nav-icon">🎯</span><span class="nav-text">My Scores</span>
+        </a>
+        <div class="nav-section-label">Account</div>
+        <a href="notifications.html" class="nav-link" data-title="Notifications">
+          <span class="nav-icon">🔔</span><span class="nav-text">Notifications</span>
+          <span class="nav-badge" id="nav-notif-count" style="display:none">0</span>
+        </a>
+        <a href="profile.html" class="nav-link" data-title="Profile">
+          <span class="nav-icon">👤</span><span class="nav-text">My Profile</span>
+        </a>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="sidebar-logout" onclick="handleLogout()">
+          <span class="nav-icon">🚪</span>
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+    <!-- MAIN -->
+    <main class="student-main" id="student-main">
+      <div class="student-topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="openMobileSidebar()">☰</button>
+          <span class="topbar-page-title">Dashboard</span>
+        </div>
+        <div class="topbar-right">
+          <button class="topbar-notif-btn" onclick="window.location.href='notifications.html'" title="Notifications">
+            🔔 <span class="notif-count" id="notif-count" style="display:none">0</span>
+          </button>
+          <div class="topbar-avatar" id="topbar-avatar" title="Profile" onclick="window.location.href='profile.html'">?</div>
+        </div>
+      </div>
+
+      <div class="student-content">
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+          <div>
+            <h2 id="welcome-name">Welcome back! 👋</h2>
+            <p id="welcome-info">University of Calabar — Academic Portal</p>
+          </div>
+          <span class="welcome-badge" id="welcome-level">— Level</span>
+        </div>
+
+        <!-- Stats -->
+        <div class="stat-grid" id="stat-grid">
+          <div class="stat-card">
+            <div class="stat-icon navy">📚</div>
+            <div class="stat-info"><div class="stat-value" id="stat-notes">—</div><div class="stat-label">Notes Available</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon gold">📝</div>
+            <div class="stat-info"><div class="stat-value" id="stat-assignments">—</div><div class="stat-label">Assignments</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon success">📤</div>
+            <div class="stat-info"><div class="stat-value" id="stat-submissions">—</div><div class="stat-label">My Submissions</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon info">🎯</div>
+            <div class="stat-info"><div class="stat-value" id="stat-scores">—</div><div class="stat-label">Scores Received</div></div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px" id="dash-grid">
+          <!-- Recent Notes -->
+          <div class="card">
+            <div class="card-header">
+              <h3>📚 Recent Notes</h3>
+              <a href="notes.html" class="btn btn-outline btn-sm">View All</a>
+            </div>
+            <div id="recent-notes"><div class="text-center" style="padding:20px"><div class="spinner-inline"></div></div></div>
+          </div>
+          <!-- Recent Assignments -->
+          <div class="card">
+            <div class="card-header">
+              <h3>📝 Active Assignments</h3>
+              <a href="assignments.html" class="btn btn-outline btn-sm">View All</a>
+            </div>
+            <div id="recent-assignments"><div class="text-center" style="padding:20px"><div class="spinner-inline"></div></div></div>
+          </div>
+        </div>
+
+        <!-- Recent Notifications -->
+        <div class="card mt-3">
+          <div class="card-header">
+            <h3>🔔 Recent Notifications</h3>
+            <a href="notifications.html" class="btn btn-outline btn-sm">View All</a>
+          </div>
+          <div id="recent-notifs"><div class="text-center" style="padding:20px"><div class="spinner-inline"></div></div></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { requireAuth, logoutUser, getUserProfile } from "../js/auth.js";
+    import { getNotesForStudent, getAssignmentsForStudent, getMySubmissions, getMyScores } from "../js/student.js";
+    import { getStudentNotifications, getUnreadCount, markNotificationRead } from "../js/notifications.js";
+    import { showToast, formatDate, getDeadlineStatus, formatRelativeTime, getInitials, formatLevel, updateNotifBadge } from "../js/utils.js";
+
+    let currentUser = null, profile = null;
+
+    async function init() {
+      try {
+        currentUser = await requireAuth("student");
+        profile = await getUserProfile(currentUser.uid);
+        if (!profile) { window.location.href = "/student/login.html"; return; }
+        renderProfile(profile);
+        loadStats();
+        loadRecentNotes();
+        loadRecentAssignments();
+        loadRecentNotifs();
+        loadUnreadCount();
+      } catch(e) {}
+    }
+
+    function renderProfile(p) {
+      const initials = getInitials(p.fullName);
+      document.getElementById("sidebar-name").textContent = p.fullName;
+      document.getElementById("sidebar-level").textContent = formatLevel(p.level);
+      document.getElementById("sidebar-avatar").textContent = initials;
+      document.getElementById("topbar-avatar").textContent = initials;
+      document.getElementById("welcome-name").textContent = `Welcome back, ${p.fullName.split(" ")[0]}! 👋`;
+      document.getElementById("welcome-info").textContent = `${p.department} — University of Calabar`;
+      document.getElementById("welcome-level").textContent = formatLevel(p.level);
+    }
+
+    async function loadStats() {
+      const [notes, assignments, submissions, scores] = await Promise.all([
+        getNotesForStudent(profile.level),
+        getAssignmentsForStudent(profile.level),
+        getMySubmissions(currentUser.uid),
+        getMyScores(currentUser.uid)
+      ]);
+      document.getElementById("stat-notes").textContent = notes.length;
+      document.getElementById("stat-assignments").textContent = assignments.length;
+      document.getElementById("stat-submissions").textContent = submissions.length;
+      document.getElementById("stat-scores").textContent = scores.length;
+    }
+
+    async function loadRecentNotes() {
+      const notes = (await getNotesForStudent(profile.level)).slice(0, 4);
+      const el = document.getElementById("recent-notes");
+      if (!notes.length) { el.innerHTML = `<div class="empty-state" style="padding:30px"><span class="empty-icon">📚</span><p>No notes uploaded yet.</p></div>`; return; }
+      el.innerHTML = notes.map(n => `
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:22px">${n.isLink ? "🔗" : "📄"}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:13.5px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n.title}</div>
+            <div style="font-size:12px;color:var(--text-muted)">${n.courseCode} · ${formatDate(n.createdAt)}</div>
+          </div>
+          ${n.fileUrl ? `<a href="${n.fileUrl}" target="_blank" class="btn btn-outline btn-sm">⬇</a>` : ""}
+        </div>`).join("") + `<div style="padding-top:12px"><a href="notes.html" style="font-size:13px;font-weight:700;color:var(--navy-light)">See all notes →</a></div>`;
+    }
+
+    async function loadRecentAssignments() {
+      const assignments = (await getAssignmentsForStudent(profile.level)).filter(a => a.status === "open").slice(0, 4);
+      const el = document.getElementById("recent-assignments");
+      if (!assignments.length) { el.innerHTML = `<div class="empty-state" style="padding:30px"><span class="empty-icon">📝</span><p>No active assignments.</p></div>`; return; }
+      el.innerHTML = assignments.map(a => {
+        const d = getDeadlineStatus(a.deadline);
+        return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:22px">📝</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:13.5px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.title}</div>
+            <div style="font-size:12px;color:var(--text-muted)">${a.courseCode}</div>
+          </div>
+          <span class="deadline-bar ${d.cls}" style="font-size:11px;white-space:nowrap">${d.icon} ${d.label}</span>
+        </div>`;
+      }).join("") + `<div style="padding-top:12px"><a href="assignments.html" style="font-size:13px;font-weight:700;color:var(--navy-light)">See all assignments →</a></div>`;
+    }
+
+    async function loadRecentNotifs() {
+      const notifs = (await getStudentNotifications(currentUser.uid, profile.level)).slice(0, 4);
+      const el = document.getElementById("recent-notifs");
+      if (!notifs.length) { el.innerHTML = `<div class="empty-state" style="padding:30px"><span class="empty-icon">🔔</span><p>No notifications yet.</p></div>`; return; }
+      const icons = { note: "📚", assignment: "📝", score: "🎯", info: "ℹ️" };
+      el.innerHTML = notifs.map(n => `
+        <div class="notif-item ${n.isRead ? "" : "unread"}">
+          <div class="notif-dot"></div>
+          <div style="flex:1">
+            <div class="notif-title">${icons[n.type] || "🔔"} ${n.title}</div>
+            <div class="notif-msg">${n.message}</div>
+            <div class="notif-time">${formatRelativeTime(n.createdAt)}</div>
+          </div>
+          ${!n.isRead ? `<span class="badge badge-navy" style="font-size:10px">NEW</span>` : ""}
+        </div>`).join("");
+    }
+
+    async function loadUnreadCount() {
+      const count = await getUnreadCount(currentUser.uid, profile.level);
+      updateNotifBadge(count);
+    }
+
+    window.handleLogout = async function() {
+      await logoutUser();
+      window.location.href = "/student/login.html";
+    };
+
+    // Sidebar toggle
+    window.toggleSidebar = function() {
+      document.getElementById("sidebar").classList.toggle("collapsed");
+    };
+    window.openMobileSidebar = function() {
+      document.getElementById("sidebar").classList.add("mobile-open");
+      document.getElementById("sidebar-overlay").style.display = "block";
+    };
+    window.closeMobileSidebar = function() {
+      document.getElementById("sidebar").classList.remove("mobile-open");
+      document.getElementById("sidebar-overlay").style.display = "none";
+    };
+
+    // Responsive: stack columns on small screens
+    function checkGrid() {
+      const grid = document.getElementById("dash-grid");
+      if (grid) grid.style.gridTemplateColumns = window.innerWidth < 700 ? "1fr" : "1fr 1fr";
+    }
+    window.addEventListener("resize", checkGrid);
+    checkGrid();
+
+    init();
+  </script>
+</body>
+</html>

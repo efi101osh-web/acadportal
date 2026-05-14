@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Courses — AcadPortal Professor</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/professor.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div id="spinner-overlay" class="spinner-overlay" style="display:none"><div class="spinner"></div></div>
+
+  <!-- ADD COURSE MODAL -->
+  <div class="modal-backdrop" id="add-course-modal">
+    <div class="modal" style="max-width:460px">
+      <div class="modal-header"><h3>📘 Add New Course</h3><button class="modal-close" onclick="closeModal('add-course-modal')">✕</button></div>
+      <div class="modal-body">
+        <div id="course-alert"></div>
+        <div class="form-group">
+          <label class="form-label">Course Code *</label>
+          <input type="text" id="course-code" class="form-control" placeholder="e.g. CSC201" style="text-transform:uppercase" />
+          <div class="form-hint">Will be auto-converted to uppercase</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Course Title *</label>
+          <input type="text" id="course-title" class="form-control" placeholder="e.g. Data Structures and Algorithms" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('add-course-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveCourse()">📘 Add Course</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="prof-layout">
+    <nav class="prof-navbar">
+      <a href="dashboard.html" class="navbar-brand"><div class="navbar-brand-icon">A</div><span class="navbar-brand-text">Acad<em>Portal</em></span></a>
+      <div class="navbar-nav">
+        <a href="dashboard.html" class="navbar-nav-link">🏠 Dashboard</a>
+        <a href="courses.html" class="navbar-nav-link active">📘 Courses</a>
+        <a href="notes.html" class="navbar-nav-link">📚 Notes</a>
+        <a href="assignments.html" class="navbar-nav-link">📝 Assignments</a>
+        <a href="submissions.html" class="navbar-nav-link">📤 Submissions</a>
+        <a href="students.html" class="navbar-nav-link">👥 Students</a>
+        <a href="scores-archive.html" class="navbar-nav-link">🎯 Archive</a>
+        <a href="storage.html" class="navbar-nav-link">💾 Storage</a>
+      </div>
+      <div class="navbar-right">
+        <div class="navbar-prof-badge"><div class="prof-avatar">P</div><div><span class="prof-name">Professor</span><span class="prof-role">Administrator</span></div></div>
+        <button class="navbar-logout-btn" onclick="handleLogout()">🚪 Logout</button>
+      </div>
+      <button class="navbar-mobile-toggle" onclick="toggleMobileNav()">☰</button>
+    </nav>
+    <div class="navbar-mobile-menu" id="mobile-nav">
+      <a href="dashboard.html" class="navbar-nav-link">🏠 Dashboard</a>
+      <a href="courses.html" class="navbar-nav-link active">📘 Courses</a>
+      <a href="notes.html" class="navbar-nav-link">📚 Notes</a>
+      <a href="assignments.html" class="navbar-nav-link">📝 Assignments</a>
+      <a href="submissions.html" class="navbar-nav-link">📤 Submissions</a>
+      <a href="students.html" class="navbar-nav-link">👥 Students</a>
+    </div>
+
+    <div class="prof-content">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+        <h2 class="section-title" style="margin:0">📘 Course Management</h2>
+        <button class="btn btn-primary" onclick="openModal('add-course-modal')">+ Add Course</button>
+      </div>
+
+      <div class="alert alert-info">
+        ℹ️ These are the courses you teach. When uploading notes or assignments, you will select from these courses. Students will see the course code on every upload.
+      </div>
+
+      <div class="card">
+        <div id="courses-container">
+          <div class="text-center" style="padding:60px"><div class="spinner-inline"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { requireAuth, logoutUser } from "../js/auth.js";
+    import { getCourses, addCourse, deleteCourse } from "../js/professor.js";
+    import { showToast, showSpinner, hideSpinner, openModal, closeModal, confirmAction } from "../js/utils.js";
+
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    let allCourses = [];
+
+    async function init() {
+      try {
+        await requireAuth("professor");
+        await loadCourses();
+      } catch(e) {}
+    }
+
+    async function loadCourses() {
+      allCourses = await getCourses();
+      const el = document.getElementById("courses-container");
+      if (!allCourses.length) {
+        el.innerHTML = `<div class="empty-state"><span class="empty-icon">📘</span><h4>No courses yet</h4><p>Add the courses you teach. You'll select them when uploading notes and assignments.</p></div>`;
+        return;
+      }
+      el.innerHTML = `
+        <div style="margin-bottom:12px;font-size:14px;color:var(--text-muted)">${allCourses.length} course${allCourses.length !== 1 ? "s" : ""} registered</div>
+        <div class="course-chips">
+          ${allCourses.map(c => `
+            <div class="course-chip">
+              <div>
+                <strong>${c.code}</strong>
+                <span style="font-weight:400;color:var(--text-mid);margin-left:8px;font-size:13px">${c.title}</span>
+              </div>
+              <button class="chip-remove" onclick="removeCourse('${c.id}', '${c.code}')" title="Delete course">✕</button>
+            </div>`).join("")}
+        </div>`;
+    }
+
+    window.saveCourse = async function() {
+      const code = document.getElementById("course-code").value.trim().toUpperCase();
+      const title = document.getElementById("course-title").value.trim();
+      const alertEl = document.getElementById("course-alert");
+      alertEl.innerHTML = "";
+      if (!code) { alertEl.innerHTML = `<div class="alert alert-danger">❌ Course code is required.</div>`; return; }
+      if (!title) { alertEl.innerHTML = `<div class="alert alert-danger">❌ Course title is required.</div>`; return; }
+      showSpinner();
+      try {
+        await addCourse(code, title);
+        hideSpinner();
+        showToast(`Course ${code} added!`, "success");
+        closeModal("add-course-modal");
+        document.getElementById("course-code").value = "";
+        document.getElementById("course-title").value = "";
+        await loadCourses();
+      } catch(e) {
+        hideSpinner();
+        alertEl.innerHTML = `<div class="alert alert-danger">❌ ${e.message}</div>`;
+      }
+    };
+
+    window.removeCourse = function(id, code) {
+      confirmAction(`Delete course "${code}"? This will NOT delete existing notes or assignments — it just removes it from the course list.`, async () => {
+        showSpinner();
+        try { await deleteCourse(id); hideSpinner(); showToast(`Course ${code} deleted.`, "success"); await loadCourses(); }
+        catch(e) { hideSpinner(); showToast(e.message, "error"); }
+      });
+    };
+
+    window.handleLogout = async () => { await logoutUser(); window.location.href = "/professor/login.html"; };
+    window.toggleMobileNav = () => document.getElementById("mobile-nav").classList.toggle("open");
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — AcadPortal Professor</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/professor.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div id="spinner-overlay" class="spinner-overlay" style="display:none"><div class="spinner"></div></div>
+
+  <div class="prof-layout">
+    <!-- TOP NAVBAR -->
+    <nav class="prof-navbar">
+      <a href="dashboard.html" class="navbar-brand">
+        <div class="navbar-brand-icon">A</div>
+        <span class="navbar-brand-text">Acad<em>Portal</em></span>
+      </a>
+      <div class="navbar-nav" id="navbar-nav">
+        <a href="dashboard.html" class="navbar-nav-link active"><span class="nav-icon">🏠</span> Dashboard</a>
+        <a href="courses.html" class="navbar-nav-link"><span class="nav-icon">📘</span> Courses</a>
+        <a href="notes.html" class="navbar-nav-link"><span class="nav-icon">📚</span> Notes</a>
+        <a href="assignments.html" class="navbar-nav-link"><span class="nav-icon">📝</span> Assignments</a>
+        <a href="submissions.html" class="navbar-nav-link"><span class="nav-icon">📤</span> Submissions</a>
+        <a href="students.html" class="navbar-nav-link"><span class="nav-icon">👥</span> Students</a>
+        <a href="scores-archive.html" class="navbar-nav-link"><span class="nav-icon">🎯</span> Archive</a>
+        <a href="storage.html" class="navbar-nav-link"><span class="nav-icon">💾</span> Storage</a>
+      </div>
+      <div class="navbar-right">
+        <div class="navbar-prof-badge">
+          <div class="prof-avatar">P</div>
+          <div><span class="prof-name">Professor</span><span class="prof-role">Administrator</span></div>
+        </div>
+        <button class="navbar-logout-btn" onclick="handleLogout()">🚪 Logout</button>
+      </div>
+      <button class="navbar-mobile-toggle" onclick="toggleMobileNav()">☰</button>
+    </nav>
+    <div class="navbar-mobile-menu" id="mobile-nav">
+      <a href="dashboard.html" class="navbar-nav-link active">🏠 Dashboard</a>
+      <a href="courses.html" class="navbar-nav-link">📘 Courses</a>
+      <a href="notes.html" class="navbar-nav-link">📚 Notes</a>
+      <a href="assignments.html" class="navbar-nav-link">📝 Assignments</a>
+      <a href="submissions.html" class="navbar-nav-link">📤 Submissions</a>
+      <a href="students.html" class="navbar-nav-link">👥 Students</a>
+      <a href="scores-archive.html" class="navbar-nav-link">🎯 Archive</a>
+      <a href="storage.html" class="navbar-nav-link">💾 Storage</a>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="prof-content">
+      <!-- Welcome -->
+      <div class="welcome-banner" style="margin-bottom:28px">
+        <div>
+          <h2 style="color:#fff;font-size:22px;margin-bottom:4px">Welcome back, Professor! 👨‍🏫</h2>
+          <p style="color:rgba(255,255,255,0.65);font-size:13px">University of Calabar — AcadPortal Management</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <a href="notes.html" class="btn btn-gold btn-sm">+ Upload Note</a>
+          <a href="assignments.html" class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,0.4)">+ New Assignment</a>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stat-grid" id="stat-grid">
+        <div class="stat-card"><div class="stat-icon navy">👥</div><div class="stat-info"><div class="stat-value" id="s-students">—</div><div class="stat-label">Total Students</div></div></div>
+        <div class="stat-card"><div class="stat-icon gold">📚</div><div class="stat-info"><div class="stat-value" id="s-notes">—</div><div class="stat-label">Notes Uploaded</div></div></div>
+        <div class="stat-card"><div class="stat-icon success">📝</div><div class="stat-info"><div class="stat-value" id="s-assignments">—</div><div class="stat-label">Assignments</div></div></div>
+        <div class="stat-card"><div class="stat-icon info">📤</div><div class="stat-info"><div class="stat-value" id="s-submissions">—</div><div class="stat-label">Submissions</div></div></div>
+        <div class="stat-card"><div class="stat-icon danger">⏳</div><div class="stat-info"><div class="stat-value" id="s-pending">—</div><div class="stat-label">Pending Grades</div></div></div>
+        <div class="stat-card"><div class="stat-icon warning" style="background:linear-gradient(135deg,var(--warning),#f5c84a);color:var(--navy-dark)">⏰</div><div class="stat-info"><div class="stat-value" id="s-deadlines">—</div><div class="stat-label">Deadlines Soon</div></div></div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <a href="notes.html" class="quick-action-btn qa-blue">📚 Upload Note</a>
+        <a href="assignments.html" class="quick-action-btn qa-gold">📝 Create Assignment</a>
+        <a href="submissions.html" class="quick-action-btn qa-green">📤 Grade Submissions</a>
+        <a href="courses.html" class="quick-action-btn qa-blue">📘 Manage Courses</a>
+        <a href="scores-archive.html" class="quick-action-btn qa-gold">🎯 View Archive</a>
+        <a href="storage.html" class="quick-action-btn qa-green">💾 Storage Manager</a>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px" id="dash-lower">
+        <!-- Recent Submissions -->
+        <div class="card">
+          <div class="card-header">
+            <h3>📤 Recent Submissions</h3>
+            <a href="submissions.html" class="btn btn-outline btn-sm">View All</a>
+          </div>
+          <div id="recent-submissions"><div class="text-center" style="padding:20px"><div class="spinner-inline"></div></div></div>
+        </div>
+        <!-- Storage -->
+        <div class="card">
+          <div class="card-header">
+            <h3>💾 Storage Overview</h3>
+            <a href="storage.html" class="btn btn-outline btn-sm">Manage</a>
+          </div>
+          <div class="storage-meter" id="storage-meter">
+            <div class="storage-label"><span>Firebase Storage</span><span id="storage-pct">—%</span></div>
+            <div class="storage-bar-wrap"><div class="storage-bar-fill" id="storage-bar" style="width:0%"></div></div>
+            <div class="storage-label"><span id="storage-used">— MB used</span><span style="color:var(--text-muted)">of 5 GB free</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { requireAuth, logoutUser } from "../js/auth.js";
+    import { getDashboardStats, getSubmissions, getStorageStats } from "../js/professor.js";
+    import { showToast, formatDateTime, formatFileSize } from "../js/utils.js";
+
+    async function init() {
+      try {
+        await requireAuth("professor");
+        const [stats, recentSubs, storage] = await Promise.all([
+          getDashboardStats(),
+          getSubmissions(),
+          getStorageStats()
+        ]);
+        document.getElementById("s-students").textContent = stats.totalStudents;
+        document.getElementById("s-notes").textContent = stats.totalNotes;
+        document.getElementById("s-assignments").textContent = stats.totalAssignments;
+        document.getElementById("s-submissions").textContent = stats.totalSubmissions;
+        document.getElementById("s-pending").textContent = stats.pendingGrade;
+        document.getElementById("s-deadlines").textContent = stats.deadlinesApproaching;
+
+        // Storage bar
+        const pct = parseFloat(storage.percentUsed);
+        const bar = document.getElementById("storage-bar");
+        bar.style.width = pct + "%";
+        if (pct > 80) bar.classList.add("danger"); else if (pct > 60) bar.classList.add("warn");
+        document.getElementById("storage-pct").textContent = pct + "%";
+        document.getElementById("storage-used").textContent = formatFileSize(storage.usedBytes) + " used";
+
+        // Recent submissions
+        const latest = recentSubs.slice(0, 5);
+        const el = document.getElementById("recent-submissions");
+        if (!latest.length) { el.innerHTML = `<div class="empty-state" style="padding:30px"><span class="empty-icon">📤</span><p>No submissions yet.</p></div>`; }
+        else el.innerHTML = latest.map(s => `
+          <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--navy);flex-shrink:0">${s.studentName?.[0] || "?"}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:700;font-size:13px;color:var(--navy)">${s.studentName}</div>
+              <div style="font-size:12px;color:var(--text-muted)">${s.assignmentTitle} · ${s.courseCode}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              ${s.isLate ? `<span class="badge badge-late" style="font-size:10px">LATE</span>` : `<span class="badge badge-success" style="font-size:10px">ON TIME</span>`}
+              ${s.graded ? `<div style="font-size:11px;color:var(--success);font-weight:700">✅ Graded: ${s.score}</div>` : `<div style="font-size:11px;color:var(--warning);font-weight:700">⏳ Pending</div>`}
+            </div>
+          </div>`).join("");
+      } catch(e) { console.error(e); }
+    }
+
+    window.handleLogout = async () => { await logoutUser(); window.location.href = "/professor/login.html"; };
+    window.toggleMobileNav = () => document.getElementById("mobile-nav").classList.toggle("open");
+
+    function checkGrid() {
+      const g = document.getElementById("dash-lower");
+      if (g) g.style.gridTemplateColumns = window.innerWidth < 768 ? "1fr" : "1fr 1fr";
+    }
+    window.addEventListener("resize", checkGrid); checkGrid();
+    init();
+  </script>
+</body>
+</html>

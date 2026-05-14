@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assignments — AcadPortal Student</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/student.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div id="spinner-overlay" class="spinner-overlay" style="display:none"><div class="spinner"></div></div>
+
+  <!-- SUBMIT MODAL -->
+  <div class="modal-backdrop" id="submit-modal">
+    <div class="modal" style="max-width:600px">
+      <div class="modal-header">
+        <h3 id="modal-title">Submit Assignment</h3>
+        <button class="modal-close" onclick="closeModal('submit-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-assignment-info" style="background:var(--bg);padding:14px;border-radius:8px;margin-bottom:20px;font-size:13px"></div>
+        <div id="existing-submission-alert"></div>
+
+        <div class="form-group">
+          <label class="form-label">Upload File (PDF, DOCX, etc.)</label>
+          <div class="upload-area" id="upload-area" onclick="document.getElementById('sub-file').click()">
+            <span class="upload-icon">📎</span>
+            <p>Click to browse or drag and drop your file here</p>
+            <p><span>Max 20MB</span> — PDF, DOCX, PPT, Images accepted</p>
+          </div>
+          <input type="file" id="sub-file" style="display:none" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.txt" onchange="handleFileSelect(event)" />
+          <div id="file-preview-area"></div>
+        </div>
+
+        <div class="auth-divider">OR</div>
+
+        <div class="form-group">
+          <label class="form-label">Type Your Answer (Text Submission)</label>
+          <textarea id="sub-text" class="form-control" rows="6" placeholder="Type your assignment answer here... You can submit text, file, or both."></textarea>
+          <div class="form-hint">You can submit both a file and typed text, or just one of them.</div>
+        </div>
+
+        <div id="submit-status-area"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('submit-modal')">Cancel</button>
+        <button class="btn btn-primary" id="submit-btn" onclick="handleSubmit()">📤 Submit Assignment</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="student-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <a href="dashboard.html" class="sidebar-brand"><div class="sidebar-brand-icon">A</div><span class="sidebar-brand-text">Acad<em>Portal</em></span></a>
+        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+      </div>
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebar-avatar">?</div>
+        <div class="sidebar-user-info"><div class="name" id="sidebar-name">Loading...</div><div class="level" id="sidebar-level">— Level</div></div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a href="dashboard.html" class="nav-link" data-title="Dashboard"><span class="nav-icon">🏠</span><span class="nav-text">Dashboard</span></a>
+        <a href="notes.html" class="nav-link" data-title="Notes"><span class="nav-icon">📚</span><span class="nav-text">Lecture Notes</span></a>
+        <a href="assignments.html" class="nav-link active" data-title="Assignments"><span class="nav-icon">📝</span><span class="nav-text">Assignments</span></a>
+        <div class="nav-section-label">My Records</div>
+        <a href="submissions.html" class="nav-link" data-title="Submissions"><span class="nav-icon">📤</span><span class="nav-text">My Submissions</span></a>
+        <a href="scores.html" class="nav-link" data-title="Scores"><span class="nav-icon">🎯</span><span class="nav-text">My Scores</span></a>
+        <div class="nav-section-label">Account</div>
+        <a href="notifications.html" class="nav-link" data-title="Notifications"><span class="nav-icon">🔔</span><span class="nav-text">Notifications</span><span class="nav-badge" id="nav-notif-count" style="display:none">0</span></a>
+        <a href="profile.html" class="nav-link" data-title="Profile"><span class="nav-icon">👤</span><span class="nav-text">My Profile</span></a>
+      </nav>
+      <div class="sidebar-bottom"><button class="sidebar-logout" onclick="handleLogout()"><span class="nav-icon">🚪</span><span>Logout</span></button></div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+    <main class="student-main">
+      <div class="student-topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="openMobileSidebar()">☰</button>
+          <span class="topbar-page-title">Assignments</span>
+        </div>
+        <div class="topbar-right">
+          <button class="topbar-notif-btn" onclick="window.location.href='notifications.html'">🔔<span class="notif-count" id="notif-count" style="display:none">0</span></button>
+          <div class="topbar-avatar" id="topbar-avatar" onclick="window.location.href='profile.html'">?</div>
+        </div>
+      </div>
+
+      <div class="student-content">
+        <h2 class="section-title">📝 Assignments</h2>
+        <div class="filter-row">
+          <div class="search-bar" style="flex:1;max-width:320px">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" class="form-control" placeholder="Search assignments..." oninput="filterAssignments()" />
+          </div>
+          <select id="filter-status" class="form-control" onchange="filterAssignments()">
+            <option value="">All</option>
+            <option value="open">Open</option>
+            <option value="closed">Closed</option>
+          </select>
+          <select id="filter-course" class="form-control" onchange="filterAssignments()">
+            <option value="">All Courses</option>
+          </select>
+        </div>
+        <div id="assignments-container">
+          <div class="text-center" style="padding:60px"><div class="spinner-inline"></div></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { requireAuth, logoutUser, getUserProfile } from "../js/auth.js";
+    import { getAssignmentsForStudent, submitAssignment, getMySubmission } from "../js/student.js";
+    import { getUnreadCount } from "../js/notifications.js";
+    import { showToast, showSpinner, hideSpinner, formatDate, formatDateTime, getDeadlineStatus, getFileIcon, formatFileSize, getInitials, formatLevel, openModal, closeModal, updateNotifBadge } from "../js/utils.js";
+
+    let allAssignments = [], profile = null, currentUser = null;
+    let activeAssignment = null, selectedFile = null;
+
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+
+    async function init() {
+      try {
+        currentUser = await requireAuth("student");
+        profile = await getUserProfile(currentUser.uid);
+        if (!profile) { window.location.href = "/student/login.html"; return; }
+        const initials = getInitials(profile.fullName);
+        document.getElementById("sidebar-name").textContent = profile.fullName;
+        document.getElementById("sidebar-level").textContent = formatLevel(profile.level);
+        document.getElementById("sidebar-avatar").textContent = initials;
+        document.getElementById("topbar-avatar").textContent = initials;
+        const count = await getUnreadCount(currentUser.uid, profile.level);
+        updateNotifBadge(count);
+        allAssignments = await getAssignmentsForStudent(profile.level);
+        populateCourseFilter();
+        await renderAssignments(allAssignments);
+      } catch(e) {}
+    }
+
+    function populateCourseFilter() {
+      const courses = [...new Set(allAssignments.map(a => a.courseCode))].sort();
+      const sel = document.getElementById("filter-course");
+      courses.forEach(c => { const o = document.createElement("option"); o.value = c; o.textContent = c; sel.appendChild(o); });
+    }
+
+    async function renderAssignments(assignments) {
+      const container = document.getElementById("assignments-container");
+      if (!assignments.length) {
+        container.innerHTML = `<div class="empty-state"><span class="empty-icon">📝</span><h4>No assignments found</h4><p>No assignments have been posted for ${formatLevel(profile.level)} yet.</p></div>`;
+        return;
+      }
+      // Load submission status for all
+      const submissionMap = {};
+      await Promise.all(assignments.map(async a => {
+        const sub = await getMySubmission(currentUser.uid, a.id);
+        submissionMap[a.id] = sub;
+      }));
+
+      container.innerHTML = `<div class="items-grid">${assignments.map(a => {
+        const d = getDeadlineStatus(a.deadline);
+        const sub = submissionMap[a.id];
+        const isClosed = a.status === "closed";
+        const deadlinePassed = d.cls === "passed";
+        const canSubmit = !isClosed;
+
+        let submissionBadge = "";
+        if (sub) {
+          submissionBadge = sub.isLate
+            ? `<span class="badge badge-late">⏰ Submitted Late</span>`
+            : `<span class="badge badge-success">✅ Submitted</span>`;
+        } else {
+          submissionBadge = deadlinePassed
+            ? `<span class="badge badge-danger">❌ Missed</span>`
+            : `<span class="badge badge-warning">⏳ Pending</span>`;
+        }
+
+        return `<div class="item-card">
+          <div class="item-card-header">
+            <h4>${a.title}</h4>
+            <span class="badge ${isClosed ? "badge-danger" : "badge-success"}">${isClosed ? "🔒 Closed" : "🟢 Open"}</span>
+          </div>
+          ${a.instructions ? `<p class="item-card-desc">${a.instructions.slice(0,120)}${a.instructions.length > 120 ? "…" : ""}</p>` : ""}
+          <div class="item-card-meta">
+            <span>📘 ${a.courseCode}</span>
+            <span>📅 Posted ${formatDate(a.createdAt)}</span>
+            ${a.fileName ? `<span>${getFileIcon(a.fileName)} Has attachment</span>` : ""}
+          </div>
+          <div class="deadline-bar ${d.cls}" style="font-size:13px">${d.icon} ${d.label}</div>
+          <div class="item-card-footer">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              ${submissionBadge}
+              ${sub ? `<span class="badge badge-navy">📅 ${formatDateTime(sub.submittedAt)}</span>` : ""}
+              ${sub?.isLate ? `<span style="font-size:11px;color:#d46000;font-weight:700">⚠️ Late submission</span>` : ""}
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              ${a.fileUrl ? `<a href="${a.fileUrl}" target="_blank" class="btn btn-outline btn-sm">⬇ Download</a>` : ""}
+              ${canSubmit ? `<button class="btn btn-primary btn-sm" onclick="openSubmitModal('${a.id}')">
+                ${sub ? "🔄 Re-upload" : "📤 Submit"}
+              </button>` : ""}
+            </div>
+          </div>
+          ${sub?.graded ? `<div class="alert alert-success" style="margin-top:8px;font-size:13px">🎯 Graded — Score: <strong>${sub.score}</strong>${sub.remark ? " · " + sub.remark : ""}</div>` : ""}
+        </div>`;
+      }).join("")}</div>`;
+    }
+
+    window.filterAssignments = async function() {
+      const q = document.getElementById("search-input").value.toLowerCase();
+      const status = document.getElementById("filter-status").value;
+      const course = document.getElementById("filter-course").value;
+      let f = allAssignments;
+      if (q) f = f.filter(a => a.title.toLowerCase().includes(q) || a.courseCode.toLowerCase().includes(q));
+      if (status) f = f.filter(a => a.status === status);
+      if (course) f = f.filter(a => a.courseCode === course);
+      await renderAssignments(f);
+    };
+
+    window.openSubmitModal = async function(assignmentId) {
+      activeAssignment = allAssignments.find(a => a.id === assignmentId);
+      if (!activeAssignment) return;
+      selectedFile = null;
+      document.getElementById("sub-file").value = "";
+      document.getElementById("sub-text").value = "";
+      document.getElementById("file-preview-area").innerHTML = "";
+      document.getElementById("submit-status-area").innerHTML = "";
+      document.getElementById("modal-title").textContent = activeAssignment.title;
+      const d = getDeadlineStatus(activeAssignment.deadline);
+      document.getElementById("modal-assignment-info").innerHTML = `
+        <strong>${activeAssignment.courseCode}</strong> · ${formatDate(activeAssignment.deadline)} deadline
+        <span class="deadline-bar ${d.cls}" style="margin-left:8px;font-size:12px">${d.icon} ${d.label}</span>`;
+      const existing = await getMySubmission(currentUser.uid, assignmentId);
+      const existingAlert = document.getElementById("existing-submission-alert");
+      if (existing) {
+        existingAlert.innerHTML = `<div class="alert alert-info" style="font-size:13px">
+          ℹ️ You already submitted this assignment on ${formatDateTime(existing.submittedAt)}. 
+          Re-uploading will replace your previous submission.
+          ${existing.isLate ? '<br><strong>⚠️ Previous submission was marked LATE.</strong>' : ''}
+        </div>`;
+      } else { existingAlert.innerHTML = ""; }
+      openModal("submit-modal");
+    };
+
+    window.handleFileSelect = function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 20 * 1024 * 1024) { showToast("File too large. Max 20MB allowed.", "error"); return; }
+      selectedFile = file;
+      document.getElementById("file-preview-area").innerHTML = `
+        <div class="file-preview">
+          <span>${getFileIcon(file.name)}</span>
+          <span>${file.name}</span>
+          <span style="color:var(--text-muted);font-size:12px">${formatFileSize(file.size)}</span>
+          <span class="file-remove" onclick="removeFile()">✕</span>
+        </div>`;
+    };
+
+    window.removeFile = function() { selectedFile = null; document.getElementById("sub-file").value = ""; document.getElementById("file-preview-area").innerHTML = ""; };
+
+    window.handleSubmit = async function() {
+      const textContent = document.getElementById("sub-text").value.trim();
+      if (!selectedFile && !textContent) { showToast("Upload a file or type your answer.", "error"); return; }
+      const btn = document.getElementById("submit-btn");
+      btn.disabled = true; btn.innerHTML = `<span class="spinner-inline"></span> Submitting...`;
+      showSpinner();
+      try {
+        await submitAssignment(profile, activeAssignment, { file: selectedFile, textContent });
+        hideSpinner();
+        showToast("Assignment submitted successfully!", "success");
+        closeModal("submit-modal");
+        allAssignments = await getAssignmentsForStudent(profile.level);
+        await renderAssignments(allAssignments);
+      } catch(err) {
+        hideSpinner(); btn.disabled = false; btn.innerHTML = `📤 Submit Assignment`;
+        document.getElementById("submit-status-area").innerHTML = `<div class="alert alert-danger">❌ ${err.message}</div>`;
+      }
+    };
+
+    // Drag and drop
+    const uploadArea = document.getElementById("upload-area");
+    uploadArea.addEventListener("dragover", e => { e.preventDefault(); uploadArea.classList.add("dragover"); });
+    uploadArea.addEventListener("dragleave", () => uploadArea.classList.remove("dragover"));
+    uploadArea.addEventListener("drop", e => {
+      e.preventDefault(); uploadArea.classList.remove("dragover");
+      const file = e.dataTransfer.files[0];
+      if (file) { const dt = new DataTransfer(); dt.items.add(file); document.getElementById("sub-file").files = dt.files; window.handleFileSelect({ target: { files: [file] } }); }
+    });
+
+    window.handleLogout = async () => { await logoutUser(); window.location.href = "/student/login.html"; };
+    window.toggleSidebar = () => document.getElementById("sidebar").classList.toggle("collapsed");
+    window.openMobileSidebar = () => { document.getElementById("sidebar").classList.add("mobile-open"); document.getElementById("sidebar-overlay").style.display = "block"; };
+    window.closeMobileSidebar = () => { document.getElementById("sidebar").classList.remove("mobile-open"); document.getElementById("sidebar-overlay").style.display = "none"; };
+
+    init();
+  </script>
+</body>
+</html>

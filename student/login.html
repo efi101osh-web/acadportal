@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Login — AcadPortal</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/auth.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div id="spinner-overlay" class="spinner-overlay" style="display:none"><div class="spinner"></div></div>
+
+  <main class="auth-page">
+    <div class="auth-card">
+      <!-- LEFT: Form -->
+      <div class="auth-left">
+        <div class="auth-logo">
+          <div class="logo-icon">A</div>
+          <span>Acad<em>Portal</em></span>
+        </div>
+        
+        <h1 class="auth-title">Student Login</h1>
+        <p class="auth-subtitle">Sign in to your student account</p>
+        
+        <div id="alert-area"></div>
+        
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <div class="input-icon-wrap">
+            <span class="icon">✉️</span>
+            <input type="email" id="email" class="form-control" placeholder="your@email.com" autocomplete="email" />
+          </div>
+          <div class="form-error" id="err-email"></div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-icon-wrap">
+            <span class="icon">🔒</span>
+            <input type="password" id="password" class="form-control" placeholder="••••••••" autocomplete="current-password" />
+          </div>
+          <div class="form-error" id="err-password"></div>
+        </div>
+        
+        <div class="show-password-wrap">
+          <input type="checkbox" id="show-pwd" onchange="togglePassword()" />
+          <label for="show-pwd">Show Password</label>
+        </div>
+        
+        <div class="forgot-wrap">
+          <a href="forgot-password.html">Forgot password?</a>
+        </div>
+        
+        <button class="btn btn-primary btn-block btn-lg" id="login-btn" onclick="handleLogin()">
+          🔑 Login
+        </button>
+        
+        <div class="auth-footer-link">
+          Don't have an account? <a href="register.html">Register here</a>
+        </div>
+        
+        <div class="auth-footer-link" style="margin-top:10px">
+          <a href="../index.html" style="color:var(--text-muted);font-size:12px">← Back to Home</a>
+        </div>
+      </div>
+      
+      <!-- RIGHT: Brand panel -->
+      <div class="auth-right">
+        <div class="auth-brand">
+          <div class="auth-brand-logo">
+            <span class="logo-letter">A</span>
+          </div>
+          <h2>Acad<span>Portal</span></h2>
+          <p class="univ-name">University of Calabar<br/>Academic Management System</p>
+          <p class="auth-brand-desc">
+            Access your lecture notes, submit assignments, view your scores and stay updated with your professor.
+          </p>
+          <a href="../index.html" class="auth-home-btn">🏠 Home</a>
+          <div class="auth-features">
+            <div class="auth-feature-item">View notes by your level</div>
+            <div class="auth-feature-item">Submit assignments with files or text</div>
+            <div class="auth-feature-item">See your scores immediately</div>
+            <div class="auth-feature-item">Receive in-app notifications</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { loginUser, redirectIfLoggedIn } from "../js/auth.js";
+    import { showToast, showSpinner, hideSpinner } from "../js/utils.js";
+
+    // Redirect if already logged in
+    redirectIfLoggedIn(false);
+
+    window.togglePassword = function() {
+      const pwd = document.getElementById("password");
+      pwd.type = pwd.type === "password" ? "text" : "password";
+    };
+
+    window.handleLogin = async function() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const btn = document.getElementById("login-btn");
+      const alertArea = document.getElementById("alert-area");
+      alertArea.innerHTML = "";
+
+      // Clear errors
+      document.getElementById("err-email").classList.remove("show");
+      document.getElementById("err-password").classList.remove("show");
+
+      let valid = true;
+      if (!email) {
+        document.getElementById("err-email").textContent = "Email is required";
+        document.getElementById("err-email").classList.add("show");
+        valid = false;
+      }
+      if (!password) {
+        document.getElementById("err-password").textContent = "Password is required";
+        document.getElementById("err-password").classList.add("show");
+        valid = false;
+      }
+      if (!valid) return;
+
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-inline"></span> Logging in...`;
+      showSpinner();
+
+      try {
+        const user = await loginUser(email, password);
+        showToast("Login successful! Redirecting...", "success");
+        setTimeout(() => { window.location.href = "/student/dashboard.html"; }, 800);
+      } catch (err) {
+        hideSpinner();
+        btn.disabled = false;
+        btn.innerHTML = `🔑 Login`;
+        let msg = "Login failed. Please check your credentials.";
+        if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
+          msg = "Invalid email or password. Please try again.";
+        } else if (err.code === "auth/too-many-requests") {
+          msg = "Too many failed attempts. Please try again later.";
+        } else if (err.code === "auth/network-request-failed") {
+          msg = "Network error. Check your internet connection.";
+        }
+        alertArea.innerHTML = `<div class="alert alert-danger">❌ ${msg}</div>`;
+      }
+    };
+
+    // Allow Enter key login
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") window.handleLogin();
+    });
+  </script>
+</body>
+</html>

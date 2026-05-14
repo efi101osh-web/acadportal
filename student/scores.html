@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Scores — AcadPortal Student</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/student.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div class="student-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <a href="dashboard.html" class="sidebar-brand"><div class="sidebar-brand-icon">A</div><span class="sidebar-brand-text">Acad<em>Portal</em></span></a>
+        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+      </div>
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebar-avatar">?</div>
+        <div class="sidebar-user-info"><div class="name" id="sidebar-name">Loading...</div><div class="level" id="sidebar-level">— Level</div></div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a href="dashboard.html" class="nav-link" data-title="Dashboard"><span class="nav-icon">🏠</span><span class="nav-text">Dashboard</span></a>
+        <a href="notes.html" class="nav-link" data-title="Notes"><span class="nav-icon">📚</span><span class="nav-text">Lecture Notes</span></a>
+        <a href="assignments.html" class="nav-link" data-title="Assignments"><span class="nav-icon">📝</span><span class="nav-text">Assignments</span></a>
+        <div class="nav-section-label">My Records</div>
+        <a href="submissions.html" class="nav-link" data-title="Submissions"><span class="nav-icon">📤</span><span class="nav-text">My Submissions</span></a>
+        <a href="scores.html" class="nav-link active" data-title="Scores"><span class="nav-icon">🎯</span><span class="nav-text">My Scores</span></a>
+        <div class="nav-section-label">Account</div>
+        <a href="notifications.html" class="nav-link" data-title="Notifications"><span class="nav-icon">🔔</span><span class="nav-text">Notifications</span><span class="nav-badge" id="nav-notif-count" style="display:none">0</span></a>
+        <a href="profile.html" class="nav-link" data-title="Profile"><span class="nav-icon">👤</span><span class="nav-text">My Profile</span></a>
+      </nav>
+      <div class="sidebar-bottom"><button class="sidebar-logout" onclick="handleLogout()"><span class="nav-icon">🚪</span><span>Logout</span></button></div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+    <main class="student-main">
+      <div class="student-topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="openMobileSidebar()">☰</button>
+          <span class="topbar-page-title">My Scores</span>
+        </div>
+        <div class="topbar-right">
+          <button class="topbar-notif-btn" onclick="window.location.href='notifications.html'">🔔<span class="notif-count" id="notif-count" style="display:none">0</span></button>
+          <div class="topbar-avatar" id="topbar-avatar" onclick="window.location.href='profile.html'">?</div>
+        </div>
+      </div>
+
+      <div class="student-content">
+        <h2 class="section-title">🎯 My Scores</h2>
+
+        <!-- Summary cards -->
+        <div class="stat-grid" id="score-stats" style="display:none">
+          <div class="stat-card">
+            <div class="stat-icon gold">🎯</div>
+            <div class="stat-info"><div class="stat-value" id="total-graded">0</div><div class="stat-label">Graded</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon success">⭐</div>
+            <div class="stat-info"><div class="stat-value" id="avg-score">—</div><div class="stat-label">Average Score</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon navy">🏆</div>
+            <div class="stat-info"><div class="stat-value" id="highest-score">—</div><div class="stat-label">Highest Score</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div id="scores-container">
+            <div class="text-center" style="padding:60px"><div class="spinner-inline"></div></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { requireAuth, logoutUser, getUserProfile } from "../js/auth.js";
+    import { getMyScores } from "../js/student.js";
+    import { getUnreadCount } from "../js/notifications.js";
+    import { formatDateTime, getInitials, formatLevel, updateNotifBadge, getScoreClass } from "../js/utils.js";
+
+    async function init() {
+      try {
+        const currentUser = await requireAuth("student");
+        const profile = await getUserProfile(currentUser.uid);
+        if (!profile) { window.location.href = "/student/login.html"; return; }
+        const initials = getInitials(profile.fullName);
+        document.getElementById("sidebar-name").textContent = profile.fullName;
+        document.getElementById("sidebar-level").textContent = formatLevel(profile.level);
+        document.getElementById("sidebar-avatar").textContent = initials;
+        document.getElementById("topbar-avatar").textContent = initials;
+        const count = await getUnreadCount(currentUser.uid, profile.level);
+        updateNotifBadge(count);
+
+        const scores = await getMyScores(currentUser.uid);
+        const container = document.getElementById("scores-container");
+
+        if (!scores.length) {
+          container.innerHTML = `<div class="empty-state"><span class="empty-icon">🎯</span><h4>No scores yet</h4><p>Your scores will appear here once the professor grades your submissions.</p></div>`;
+          return;
+        }
+
+        // Stats
+        const total = scores.length;
+        const avg = (scores.reduce((s, x) => s + (x.score || 0), 0) / total).toFixed(1);
+        const highest = Math.max(...scores.map(s => s.score || 0));
+        document.getElementById("total-graded").textContent = total;
+        document.getElementById("avg-score").textContent = avg;
+        document.getElementById("highest-score").textContent = highest;
+        document.getElementById("score-stats").style.display = "grid";
+
+        container.innerHTML = `
+          <div class="items-grid">${scores.map(s => {
+            const cls = s.score >= 70 ? "high" : s.score >= 50 ? "mid" : "low";
+            return `<div class="item-card">
+              <div class="item-card-header">
+                <div style="flex:1">
+                  <h4 style="font-size:14px">${s.assignmentTitle}</h4>
+                  <div class="item-card-meta" style="margin-top:4px">
+                    <span>📘 ${s.courseCode}</span>
+                    <span>🎓 ${formatLevel(s.level)}</span>
+                    <span>📅 ${formatDateTime(s.gradedAt)}</span>
+                  </div>
+                </div>
+                <div class="score-circle ${cls}" style="flex-shrink:0">${s.score}</div>
+              </div>
+              ${s.remark ? `<div style="background:var(--bg);padding:12px;border-radius:8px;font-size:13px;color:var(--text-mid);border-left:3px solid var(--gold)">
+                💬 <em>${s.remark}</em>
+              </div>` : ""}
+              <div class="item-card-meta">
+                <span style="font-size:12px;color:var(--text-muted)">Submitted: ${formatDateTime(s.submittedAt)}</span>
+              </div>
+            </div>`;
+          }).join("")}</div>`;
+      } catch(e) {}
+    }
+
+    window.handleLogout = async () => { await logoutUser(); window.location.href = "/student/login.html"; };
+    window.toggleSidebar = () => document.getElementById("sidebar").classList.toggle("collapsed");
+    window.openMobileSidebar = () => { document.getElementById("sidebar").classList.add("mobile-open"); document.getElementById("sidebar-overlay").style.display = "block"; };
+    window.closeMobileSidebar = () => { document.getElementById("sidebar").classList.remove("mobile-open"); document.getElementById("sidebar-overlay").style.display = "none"; };
+    init();
+  </script>
+</body>
+</html>

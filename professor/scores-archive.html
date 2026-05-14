@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scores Archive — AcadPortal Professor</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/professor.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div id="spinner-overlay" class="spinner-overlay" style="display:none"><div class="spinner"></div></div>
+
+  <div class="prof-layout">
+    <nav class="prof-navbar">
+      <a href="dashboard.html" class="navbar-brand"><div class="navbar-brand-icon">A</div><span class="navbar-brand-text">Acad<em>Portal</em></span></a>
+      <div class="navbar-nav">
+        <a href="dashboard.html" class="navbar-nav-link">🏠 Dashboard</a>
+        <a href="courses.html" class="navbar-nav-link">📘 Courses</a>
+        <a href="notes.html" class="navbar-nav-link">📚 Notes</a>
+        <a href="assignments.html" class="navbar-nav-link">📝 Assignments</a>
+        <a href="submissions.html" class="navbar-nav-link">📤 Submissions</a>
+        <a href="students.html" class="navbar-nav-link">👥 Students</a>
+        <a href="scores-archive.html" class="navbar-nav-link active">🎯 Archive</a>
+        <a href="storage.html" class="navbar-nav-link">💾 Storage</a>
+      </div>
+      <div class="navbar-right">
+        <div class="navbar-prof-badge"><div class="prof-avatar">P</div><div><span class="prof-name">Professor</span><span class="prof-role">Administrator</span></div></div>
+        <button class="navbar-logout-btn" onclick="handleLogout()">🚪 Logout</button>
+      </div>
+      <button class="navbar-mobile-toggle" onclick="toggleMobileNav()">☰</button>
+    </nav>
+    <div class="navbar-mobile-menu" id="mobile-nav">
+      <a href="dashboard.html" class="navbar-nav-link">🏠 Dashboard</a>
+      <a href="scores-archive.html" class="navbar-nav-link active">🎯 Archive</a>
+    </div>
+
+    <div class="prof-content">
+      <h2 class="section-title">🎯 Scores Archive</h2>
+
+      <div class="alert alert-info" style="margin-bottom:20px">
+        📦 All graded scores are permanently stored here by course, level, and student. Use filters to find specific records. Export to CSV for offline records.
+      </div>
+
+      <div class="filter-row" style="margin-bottom:20px">
+        <div class="search-bar" style="flex:1;max-width:300px">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" class="form-control" placeholder="Search by name, matric, course..." oninput="filterArchive()" />
+        </div>
+        <select id="filter-level" class="form-control" onchange="filterArchive()">
+          <option value="">All Levels</option>
+          <option value="100">100 Level</option>
+          <option value="200">200 Level</option>
+          <option value="300">300 Level</option>
+          <option value="400">400 Level</option>
+          <option value="500">500 Level</option>
+          <option value="Postgraduate">Postgraduate</option>
+          <option value="PhD">PhD</option>
+        </select>
+        <select id="filter-course" class="form-control" onchange="filterArchive()">
+          <option value="">All Courses</option>
+        </select>
+        <button class="btn btn-gold btn-sm" onclick="exportArchive()">📥 Export CSV</button>
+        <span id="archive-count" style="font-size:13px;color:var(--text-muted);font-weight:600"></span>
+      </div>
+
+      <!-- Summary stats -->
+      <div class="stat-grid" id="archive-stats" style="display:none;margin-bottom:24px">
+        <div class="stat-card"><div class="stat-icon gold">📋</div><div class="stat-info"><div class="stat-value" id="a-total">0</div><div class="stat-label">Total Records</div></div></div>
+        <div class="stat-card"><div class="stat-icon success">⭐</div><div class="stat-info"><div class="stat-value" id="a-avg">—</div><div class="stat-label">Average Score</div></div></div>
+        <div class="stat-card"><div class="stat-icon navy">🏆</div><div class="stat-info"><div class="stat-value" id="a-high">—</div><div class="stat-label">Highest Score</div></div></div>
+        <div class="stat-card"><div class="stat-icon danger">📉</div><div class="stat-info"><div class="stat-value" id="a-low">—</div><div class="stat-label">Lowest Score</div></div></div>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden">
+        <div id="archive-container">
+          <div class="text-center" style="padding:60px"><div class="spinner-inline"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { requireAuth, logoutUser } from "../js/auth.js";
+    import { getScoresArchive } from "../js/professor.js";
+    import { showToast, formatDateTime, formatLevel, exportToCSV, getScoreClass } from "../js/utils.js";
+
+    let allRecords = [], filtered = [];
+
+    async function init() {
+      try {
+        await requireAuth("professor");
+        allRecords = await getScoresArchive();
+        populateCourseFilter();
+        filterArchive();
+      } catch(e) {}
+    }
+
+    function populateCourseFilter() {
+      const courses = [...new Set(allRecords.map(r => r.courseCode))].sort();
+      const sel = document.getElementById("filter-course");
+      sel.innerHTML = `<option value="">All Courses</option>` + courses.map(c => `<option value="${c}">${c}</option>`).join("");
+    }
+
+    function renderArchive(records) {
+      document.getElementById("archive-count").textContent = `${records.length} record${records.length !== 1 ? "s" : ""}`;
+      const el = document.getElementById("archive-container");
+
+      if (!records.length) {
+        el.innerHTML = `<div class="empty-state"><span class="empty-icon">🎯</span><h4>No scores archived yet</h4><p>Scores appear here after you grade student submissions.</p></div>`;
+        document.getElementById("archive-stats").style.display = "none";
+        return;
+      }
+
+      // Stats
+      const scores = records.map(r => r.score || 0);
+      const avg = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
+      const high = Math.max(...scores);
+      const low = Math.min(...scores);
+      document.getElementById("a-total").textContent = records.length;
+      document.getElementById("a-avg").textContent = avg;
+      document.getElementById("a-high").textContent = high;
+      document.getElementById("a-low").textContent = low;
+      document.getElementById("archive-stats").style.display = "grid";
+
+      el.innerHTML = `<div class="table-wrap" style="border:none;border-radius:0"><table>
+        <thead><tr>
+          <th>Student Name</th><th>Matric</th><th>Department</th><th>Level</th>
+          <th>Course</th><th>Assignment</th><th>Score</th><th>Remark</th><th>Graded</th>
+        </tr></thead>
+        <tbody>${records.map(r => {
+          const cls = getScoreClass(r.score, 100);
+          return `<tr>
+            <td><strong>${r.studentName}</strong></td>
+            <td style="font-size:12px">${r.matricNumber}</td>
+            <td style="font-size:12px">${r.department}</td>
+            <td><span class="badge badge-gold" style="font-size:10px">${formatLevel(r.level)}</span></td>
+            <td><span class="badge badge-navy">${r.courseCode}</span></td>
+            <td style="font-size:12px">${r.assignmentTitle?.slice(0, 40) || "—"}</td>
+            <td>
+              <span style="font-size:18px;font-weight:800;color:${cls === 'high' ? 'var(--success)' : cls === 'mid' ? 'var(--warning)' : 'var(--danger)'}">${r.score}</span>
+            </td>
+            <td style="font-size:12px;color:var(--text-mid);max-width:160px">${r.remark || "—"}</td>
+            <td style="font-size:12px">${formatDateTime(r.gradedAt)}</td>
+          </tr>`;
+        }).join("")}
+        </tbody></table></div>`;
+    }
+
+    window.filterArchive = function() {
+      const q = document.getElementById("search-input").value.toLowerCase();
+      const level = document.getElementById("filter-level").value;
+      const course = document.getElementById("filter-course").value;
+      filtered = allRecords;
+      if (q) filtered = filtered.filter(r =>
+        r.studentName.toLowerCase().includes(q) ||
+        r.matricNumber.toLowerCase().includes(q) ||
+        r.courseCode.toLowerCase().includes(q) ||
+        (r.assignmentTitle || "").toLowerCase().includes(q));
+      if (level) filtered = filtered.filter(r => r.level === level);
+      if (course) filtered = filtered.filter(r => r.courseCode === course);
+      renderArchive(filtered);
+    };
+
+    window.exportArchive = function() {
+      const data = (filtered.length ? filtered : allRecords).map(r => ({
+        "Student Name": r.studentName,
+        "Matric Number": r.matricNumber,
+        "Department": r.department,
+        "Level": formatLevel(r.level),
+        "Course Code": r.courseCode,
+        "Assignment": r.assignmentTitle || "",
+        "Score": r.score,
+        "Remark": r.remark || "",
+        "Date Graded": formatDateTime(r.gradedAt)
+      }));
+      exportToCSV(data, "AcadPortal_Scores_Archive");
+      showToast("Scores exported to CSV!", "success");
+    };
+
+    window.handleLogout = async () => { await logoutUser(); window.location.href = "/professor/login.html"; };
+    window.toggleMobileNav = () => document.getElementById("mobile-nav").classList.toggle("open");
+    init();
+  </script>
+</body>
+</html>

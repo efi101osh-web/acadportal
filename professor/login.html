@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Professor Login — AcadPortal</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/auth.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div id="spinner-overlay" class="spinner-overlay" style="display:none"><div class="spinner"></div></div>
+
+  <main class="auth-page">
+    <div class="auth-card">
+      <div class="auth-left">
+        <div class="auth-logo">
+          <div class="logo-icon">A</div>
+          <span>Acad<em>Portal</em></span>
+        </div>
+        <h1 class="auth-title">Professor Login</h1>
+        <p class="auth-subtitle">Sign in to your professor dashboard</p>
+        <div id="alert-area"></div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <div class="input-icon-wrap">
+            <span class="icon">✉️</span>
+            <input type="email" id="email" class="form-control" placeholder="omoogun.ajayi@gmail.com" value="omoogun.ajayi@gmail.com" autocomplete="email" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-icon-wrap">
+            <span class="icon">🔒</span>
+            <input type="password" id="password" class="form-control" placeholder="••••••••" autocomplete="current-password" />
+          </div>
+        </div>
+        <div class="show-password-wrap">
+          <input type="checkbox" id="show-pwd" onchange="document.getElementById('password').type = this.checked ? 'text' : 'password'" />
+          <label for="show-pwd">Show Password</label>
+        </div>
+        <div class="forgot-wrap">
+          <a href="forgot-password.html">Forgot password?</a>
+        </div>
+        <button class="btn btn-gold btn-block btn-lg" id="login-btn" onclick="handleLogin()">
+          👨‍🏫 Professor Login
+        </button>
+        <div class="auth-footer-link" style="margin-top:16px">
+          <a href="../index.html" style="color:var(--text-muted);font-size:12px">← Back to Home</a>
+        </div>
+      </div>
+      <div class="auth-right">
+        <div class="auth-brand">
+          <div class="auth-brand-logo"><span class="logo-letter">A</span></div>
+          <h2>Acad<span>Portal</span></h2>
+          <p class="univ-name">University of Calabar<br/>Professor Access</p>
+          <p class="auth-brand-desc">
+            Manage your courses, upload lecture materials, grade student submissions and monitor your class performance.
+          </p>
+          <a href="../index.html" class="auth-home-btn">🏠 Home</a>
+          <div class="auth-features">
+            <div class="auth-feature-item">Upload notes & assignments</div>
+            <div class="auth-feature-item">Grade submissions instantly</div>
+            <div class="auth-feature-item">Monitor student progress</div>
+            <div class="auth-feature-item">Manage storage efficiently</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { loginUser, redirectIfLoggedIn } from "../js/auth.js";
+    import { showToast, showSpinner, hideSpinner } from "../js/utils.js";
+    import { PROFESSOR_UID } from "../js/firebase-config.js";
+
+    redirectIfLoggedIn(true);
+
+    window.handleLogin = async function() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const alertArea = document.getElementById("alert-area");
+      const btn = document.getElementById("login-btn");
+      alertArea.innerHTML = "";
+      if (!email || !password) {
+        alertArea.innerHTML = `<div class="alert alert-danger">❌ Enter your email and password.</div>`;
+        return;
+      }
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-inline"></span> Logging in...`;
+      showSpinner();
+      try {
+        const user = await loginUser(email, password);
+        if (user.uid !== PROFESSOR_UID) {
+          hideSpinner();
+          btn.disabled = false;
+          btn.innerHTML = `👨‍🏫 Professor Login`;
+          alertArea.innerHTML = `<div class="alert alert-danger">❌ This account does not have professor access. <a href="../student/login.html">Student login →</a></div>`;
+          return;
+        }
+        showToast("Welcome, Professor!", "success");
+        setTimeout(() => { window.location.href = "/professor/dashboard.html"; }, 800);
+      } catch(err) {
+        hideSpinner();
+        btn.disabled = false;
+        btn.innerHTML = `👨‍🏫 Professor Login`;
+        let msg = "Login failed. Please check your credentials.";
+        if (err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") msg = "Incorrect email or password.";
+        if (err.code === "auth/too-many-requests") msg = "Too many failed attempts. Try again later.";
+        alertArea.innerHTML = `<div class="alert alert-danger">❌ ${msg}</div>`;
+      }
+    };
+    document.addEventListener("keydown", (e) => { if (e.key === "Enter") window.handleLogin(); });
+  </script>
+</body>
+</html>

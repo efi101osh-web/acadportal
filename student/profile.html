@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile — AcadPortal Student</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/student.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div id="spinner-overlay" class="spinner-overlay" style="display:none"><div class="spinner"></div></div>
+  <div class="student-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <a href="dashboard.html" class="sidebar-brand"><div class="sidebar-brand-icon">A</div><span class="sidebar-brand-text">Acad<em>Portal</em></span></a>
+        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+      </div>
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebar-avatar">?</div>
+        <div class="sidebar-user-info"><div class="name" id="sidebar-name">Loading...</div><div class="level" id="sidebar-level">— Level</div></div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a href="dashboard.html" class="nav-link" data-title="Dashboard"><span class="nav-icon">🏠</span><span class="nav-text">Dashboard</span></a>
+        <a href="notes.html" class="nav-link" data-title="Notes"><span class="nav-icon">📚</span><span class="nav-text">Lecture Notes</span></a>
+        <a href="assignments.html" class="nav-link" data-title="Assignments"><span class="nav-icon">📝</span><span class="nav-text">Assignments</span></a>
+        <div class="nav-section-label">My Records</div>
+        <a href="submissions.html" class="nav-link" data-title="Submissions"><span class="nav-icon">📤</span><span class="nav-text">My Submissions</span></a>
+        <a href="scores.html" class="nav-link" data-title="Scores"><span class="nav-icon">🎯</span><span class="nav-text">My Scores</span></a>
+        <div class="nav-section-label">Account</div>
+        <a href="notifications.html" class="nav-link" data-title="Notifications"><span class="nav-icon">🔔</span><span class="nav-text">Notifications</span><span class="nav-badge" id="nav-notif-count" style="display:none">0</span></a>
+        <a href="profile.html" class="nav-link active" data-title="Profile"><span class="nav-icon">👤</span><span class="nav-text">My Profile</span></a>
+      </nav>
+      <div class="sidebar-bottom"><button class="sidebar-logout" onclick="handleLogout()"><span class="nav-icon">🚪</span><span>Logout</span></button></div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+    <main class="student-main">
+      <div class="student-topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="openMobileSidebar()">☰</button>
+          <span class="topbar-page-title">My Profile</span>
+        </div>
+        <div class="topbar-right">
+          <button class="topbar-notif-btn" onclick="window.location.href='notifications.html'">🔔<span class="notif-count" id="notif-count" style="display:none">0</span></button>
+          <div class="topbar-avatar" id="topbar-avatar" onclick="window.location.href='profile.html'">?</div>
+        </div>
+      </div>
+
+      <div class="student-content" style="max-width:700px">
+        <h2 class="section-title">👤 My Profile</h2>
+
+        <!-- Profile Card -->
+        <div class="card" style="margin-bottom:20px">
+          <div style="display:flex;align-items:center;gap:20px;margin-bottom:24px">
+            <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy-mid));display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;flex-shrink:0" id="profile-big-avatar">?</div>
+            <div>
+              <h3 id="profile-fullname" style="margin:0;font-size:20px"></h3>
+              <p id="profile-email" style="color:var(--text-muted);font-size:14px;margin:4px 0 0"></p>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <span class="badge badge-navy" id="profile-level-badge"></span>
+                <span class="badge badge-gold" id="profile-matric-badge"></span>
+              </div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:14px">
+            <div><span class="text-muted fw-bold" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Department</span><p id="profile-dept" style="margin:4px 0 0;font-weight:700;color:var(--navy)"></p></div>
+            <div><span class="text-muted fw-bold" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Level</span><p id="profile-level-text" style="margin:4px 0 0;font-weight:700;color:var(--navy)"></p></div>
+            <div><span class="text-muted fw-bold" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Matric Number</span><p id="profile-matric" style="margin:4px 0 0;font-weight:700;color:var(--navy)"></p></div>
+            <div><span class="text-muted fw-bold" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Registered</span><p id="profile-date" style="margin:4px 0 0;font-weight:700;color:var(--navy)"></p></div>
+          </div>
+        </div>
+
+        <!-- Edit Form -->
+        <div class="card">
+          <div class="card-header"><h3>✏️ Edit Profile</h3></div>
+          <div id="edit-alert"></div>
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" id="edit-name" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <input type="text" id="edit-dept" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Level</label>
+            <select id="edit-level" class="form-control">
+              <option value="100">100 Level</option>
+              <option value="200">200 Level</option>
+              <option value="300">300 Level</option>
+              <option value="400">400 Level</option>
+              <option value="500">500 Level</option>
+              <option value="Postgraduate">Postgraduate</option>
+              <option value="PhD">PhD</option>
+            </select>
+          </div>
+          <div class="form-hint" style="margin-bottom:16px">⚠️ Note: Changing your level will change which notes and assignments you see.</div>
+          <button class="btn btn-primary" onclick="saveProfile()">💾 Save Changes</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { requireAuth, logoutUser, getUserProfile } from "../js/auth.js";
+    import { updateStudentProfile } from "../js/student.js";
+    import { getUnreadCount } from "../js/notifications.js";
+    import { showToast, showSpinner, hideSpinner, getInitials, formatLevel, formatDate, updateNotifBadge } from "../js/utils.js";
+
+    let currentUser, profile;
+
+    async function init() {
+      try {
+        currentUser = await requireAuth("student");
+        profile = await getUserProfile(currentUser.uid);
+        if (!profile) { window.location.href = "/student/login.html"; return; }
+        const initials = getInitials(profile.fullName);
+        document.getElementById("sidebar-name").textContent = profile.fullName;
+        document.getElementById("sidebar-level").textContent = formatLevel(profile.level);
+        document.getElementById("sidebar-avatar").textContent = initials;
+        document.getElementById("topbar-avatar").textContent = initials;
+        document.getElementById("profile-big-avatar").textContent = initials;
+        document.getElementById("profile-fullname").textContent = profile.fullName;
+        document.getElementById("profile-email").textContent = profile.email;
+        document.getElementById("profile-level-badge").textContent = formatLevel(profile.level);
+        document.getElementById("profile-matric-badge").textContent = profile.matricNumber;
+        document.getElementById("profile-dept").textContent = profile.department;
+        document.getElementById("profile-level-text").textContent = formatLevel(profile.level);
+        document.getElementById("profile-matric").textContent = profile.matricNumber;
+        document.getElementById("profile-date").textContent = formatDate(profile.createdAt);
+        document.getElementById("edit-name").value = profile.fullName;
+        document.getElementById("edit-dept").value = profile.department;
+        document.getElementById("edit-level").value = profile.level;
+        const count = await getUnreadCount(currentUser.uid, profile.level);
+        updateNotifBadge(count);
+      } catch(e) {}
+    }
+
+    window.saveProfile = async function() {
+      const fullName = document.getElementById("edit-name").value.trim();
+      const department = document.getElementById("edit-dept").value.trim();
+      const level = document.getElementById("edit-level").value;
+      const alertEl = document.getElementById("edit-alert");
+      alertEl.innerHTML = "";
+      if (!fullName || fullName.length < 3) { alertEl.innerHTML = `<div class="alert alert-danger">❌ Full name must be at least 3 characters.</div>`; return; }
+      if (!department) { alertEl.innerHTML = `<div class="alert alert-danger">❌ Department is required.</div>`; return; }
+      showSpinner();
+      try {
+        await updateStudentProfile(currentUser.uid, { fullName, department, level });
+        hideSpinner();
+        showToast("Profile updated successfully!", "success");
+        alertEl.innerHTML = `<div class="alert alert-success">✅ Profile updated.</div>`;
+        document.getElementById("sidebar-name").textContent = fullName;
+        document.getElementById("sidebar-level").textContent = formatLevel(level);
+        document.getElementById("profile-big-avatar").textContent = fullName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0,2);
+        document.getElementById("profile-fullname").textContent = fullName;
+        document.getElementById("profile-level-badge").textContent = formatLevel(level);
+        document.getElementById("profile-dept").textContent = department;
+        document.getElementById("profile-level-text").textContent = formatLevel(level);
+      } catch(e) {
+        hideSpinner();
+        alertEl.innerHTML = `<div class="alert alert-danger">❌ ${e.message}</div>`;
+      }
+    };
+
+    window.handleLogout = async () => { await logoutUser(); window.location.href = "/student/login.html"; };
+    window.toggleSidebar = () => document.getElementById("sidebar").classList.toggle("collapsed");
+    window.openMobileSidebar = () => { document.getElementById("sidebar").classList.add("mobile-open"); document.getElementById("sidebar-overlay").style.display = "block"; };
+    window.closeMobileSidebar = () => { document.getElementById("sidebar").classList.remove("mobile-open"); document.getElementById("sidebar-overlay").style.display = "none"; };
+    init();
+  </script>
+</body>
+</html>

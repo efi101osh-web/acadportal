@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notes — AcadPortal Professor</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/professor.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div id="spinner-overlay" class="spinner-overlay" style="display:none"><div class="spinner"></div></div>
+
+  <!-- UPLOAD NOTE MODAL -->
+  <div class="modal-backdrop" id="note-modal">
+    <div class="modal" style="max-width:580px">
+      <div class="modal-header"><h3 id="note-modal-title">📚 Upload Note</h3><button class="modal-close" onclick="closeModal('note-modal')">✕</button></div>
+      <div class="modal-body">
+        <div id="note-alert"></div>
+        <input type="hidden" id="edit-note-id" />
+        <div class="form-group">
+          <label class="form-label">Note Title *</label>
+          <input type="text" id="note-title" class="form-control" placeholder="e.g. Introduction to Data Structures" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="form-group">
+            <label class="form-label">Course *</label>
+            <select id="note-course" class="form-control">
+              <option value="">-- Select Course --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Level *</label>
+            <select id="note-level" class="form-control">
+              <option value="">-- Select Level --</option>
+              <option value="100">100 Level</option>
+              <option value="200">200 Level</option>
+              <option value="300">300 Level</option>
+              <option value="400">400 Level</option>
+              <option value="500">500 Level</option>
+              <option value="Postgraduate">Postgraduate</option>
+              <option value="PhD">PhD</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea id="note-desc" class="form-control" rows="2" placeholder="Optional brief description..."></textarea>
+        </div>
+        <div id="file-section">
+          <div class="form-group">
+            <label class="form-label">Upload File (PDF, DOCX, PPT, Images)</label>
+            <div class="upload-area" id="note-upload-area" onclick="document.getElementById('note-file').click()">
+              <span class="upload-icon">📄</span>
+              <p>Click to choose a file or drag and drop</p>
+              <p><span>Max 20MB</span></p>
+            </div>
+            <input type="file" id="note-file" style="display:none" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.txt" onchange="handleNoteFile(event)" />
+            <div id="note-file-preview"></div>
+          </div>
+          <div class="auth-divider">OR</div>
+          <div class="form-group">
+            <label class="form-label">Paste a Link (Google Drive, YouTube, etc.)</label>
+            <input type="url" id="note-link" class="form-control" placeholder="https://..." />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('note-modal')">Cancel</button>
+        <button class="btn btn-primary" id="save-note-btn" onclick="saveNote()">📚 Upload Note</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="prof-layout">
+    <nav class="prof-navbar">
+      <a href="dashboard.html" class="navbar-brand"><div class="navbar-brand-icon">A</div><span class="navbar-brand-text">Acad<em>Portal</em></span></a>
+      <div class="navbar-nav">
+        <a href="dashboard.html" class="navbar-nav-link">🏠 Dashboard</a>
+        <a href="courses.html" class="navbar-nav-link">📘 Courses</a>
+        <a href="notes.html" class="navbar-nav-link active">📚 Notes</a>
+        <a href="assignments.html" class="navbar-nav-link">📝 Assignments</a>
+        <a href="submissions.html" class="navbar-nav-link">📤 Submissions</a>
+        <a href="students.html" class="navbar-nav-link">👥 Students</a>
+        <a href="scores-archive.html" class="navbar-nav-link">🎯 Archive</a>
+        <a href="storage.html" class="navbar-nav-link">💾 Storage</a>
+      </div>
+      <div class="navbar-right">
+        <div class="navbar-prof-badge"><div class="prof-avatar">P</div><div><span class="prof-name">Professor</span><span class="prof-role">Administrator</span></div></div>
+        <button class="navbar-logout-btn" onclick="handleLogout()">🚪 Logout</button>
+      </div>
+      <button class="navbar-mobile-toggle" onclick="toggleMobileNav()">☰</button>
+    </nav>
+    <div class="navbar-mobile-menu" id="mobile-nav">
+      <a href="dashboard.html" class="navbar-nav-link">🏠 Dashboard</a>
+      <a href="notes.html" class="navbar-nav-link active">📚 Notes</a>
+      <a href="assignments.html" class="navbar-nav-link">📝 Assignments</a>
+      <a href="submissions.html" class="navbar-nav-link">📤 Submissions</a>
+    </div>
+
+    <div class="prof-content">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+        <h2 class="section-title" style="margin:0">📚 Lecture Notes</h2>
+        <button class="btn btn-primary" onclick="openUploadModal()">+ Upload Note</button>
+      </div>
+      <div class="filter-row">
+        <div class="search-bar" style="flex:1;max-width:320px">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" class="form-control" placeholder="Search notes..." oninput="filterNotes()" />
+        </div>
+        <select id="filter-level" class="form-control" onchange="filterNotes()">
+          <option value="">All Levels</option>
+          <option value="100">100 Level</option>
+          <option value="200">200 Level</option>
+          <option value="300">300 Level</option>
+          <option value="400">400 Level</option>
+          <option value="500">500 Level</option>
+          <option value="Postgraduate">Postgraduate</option>
+          <option value="PhD">PhD</option>
+        </select>
+        <select id="filter-course" class="form-control" onchange="filterNotes()">
+          <option value="">All Courses</option>
+        </select>
+        <span id="notes-count" class="text-muted" style="font-size:13px;font-weight:600"></span>
+      </div>
+      <div id="notes-container">
+        <div class="text-center" style="padding:60px"><div class="spinner-inline"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { requireAuth, logoutUser } from "../js/auth.js";
+    import { getNotes, uploadNote, updateNote, deleteNote, getCourses } from "../js/professor.js";
+    import { showToast, showSpinner, hideSpinner, openModal, closeModal, formatDate, formatFileSize, getFileIcon, formatLevel, confirmAction } from "../js/utils.js";
+
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    let allNotes = [], allCourses = [], selectedFile = null;
+
+    async function init() {
+      try {
+        await requireAuth("professor");
+        allCourses = await getCourses();
+        populateCourseDropdowns();
+        allNotes = await getNotes();
+        populateCourseFilter();
+        renderNotes(allNotes);
+      } catch(e) {}
+    }
+
+    function populateCourseDropdowns() {
+      const sel = document.getElementById("note-course");
+      sel.innerHTML = `<option value="">-- Select Course --</option>` + allCourses.map(c => `<option value="${c.code}" data-title="${c.title}">${c.code} — ${c.title}</option>`).join("");
+    }
+    function populateCourseFilter() {
+      const courses = [...new Set(allNotes.map(n => n.courseCode))].sort();
+      const sel = document.getElementById("filter-course");
+      sel.innerHTML = `<option value="">All Courses</option>` + courses.map(c => `<option value="${c}">${c}</option>`).join("");
+    }
+
+    function renderNotes(notes) {
+      document.getElementById("notes-count").textContent = `${notes.length} note${notes.length !== 1 ? "s" : ""}`;
+      const el = document.getElementById("notes-container");
+      if (!notes.length) { el.innerHTML = `<div class="empty-state"><span class="empty-icon">📚</span><h4>No notes yet</h4><p>Click "Upload Note" to add your first lecture note.</p></div>`; return; }
+      el.innerHTML = `<div class="table-wrap"><table>
+        <thead><tr><th>Title</th><th>Course</th><th>Level</th><th>Type</th><th>Downloads</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody>${notes.map(n => `
+          <tr>
+            <td><strong>${n.title}</strong>${n.description ? `<div style="font-size:12px;color:var(--text-muted)">${n.description.slice(0,60)}${n.description.length>60?"…":""}</div>` : ""}</td>
+            <td><span class="badge badge-navy">${n.courseCode}</span></td>
+            <td><span class="badge badge-gold">${formatLevel(n.level)}</span></td>
+            <td>${n.isLink ? "🔗 Link" : `${getFileIcon(n.fileName)} ${formatFileSize(n.fileSize)}`}</td>
+            <td>⬇ ${n.downloadCount || 0}</td>
+            <td style="font-size:12px">${formatDate(n.createdAt)}</td>
+            <td>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                ${n.fileUrl ? `<a href="${n.fileUrl}" target="_blank" class="btn btn-outline btn-sm">👁 View</a>` : ""}
+                <button class="btn btn-outline btn-sm" onclick="openEditModal('${n.id}')">✏️ Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteNoteById('${n.id}', '${n.title.replace(/'/g,"\\'")}')">🗑</button>
+              </div>
+            </td>
+          </tr>`).join("")}
+        </tbody></table></div>`;
+    }
+
+    window.filterNotes = function() {
+      const q = document.getElementById("search-input").value.toLowerCase();
+      const level = document.getElementById("filter-level").value;
+      const course = document.getElementById("filter-course").value;
+      let f = allNotes;
+      if (q) f = f.filter(n => n.title.toLowerCase().includes(q) || n.courseCode.toLowerCase().includes(q));
+      if (level) f = f.filter(n => n.level === level);
+      if (course) f = f.filter(n => n.courseCode === course);
+      renderNotes(f);
+    };
+
+    window.openUploadModal = function() {
+      document.getElementById("edit-note-id").value = "";
+      document.getElementById("note-title").value = "";
+      document.getElementById("note-course").value = "";
+      document.getElementById("note-level").value = "";
+      document.getElementById("note-desc").value = "";
+      document.getElementById("note-link").value = "";
+      document.getElementById("note-file-preview").innerHTML = "";
+      document.getElementById("note-alert").innerHTML = "";
+      document.getElementById("note-modal-title").textContent = "📚 Upload Note";
+      document.getElementById("save-note-btn").textContent = "📚 Upload Note";
+      document.getElementById("file-section").style.display = "block";
+      selectedFile = null;
+      openModal("note-modal");
+    };
+
+    window.openEditModal = function(noteId) {
+      const note = allNotes.find(n => n.id === noteId);
+      if (!note) return;
+      document.getElementById("edit-note-id").value = noteId;
+      document.getElementById("note-title").value = note.title;
+      document.getElementById("note-course").value = note.courseCode;
+      document.getElementById("note-level").value = note.level;
+      document.getElementById("note-desc").value = note.description || "";
+      document.getElementById("note-link").value = "";
+      document.getElementById("note-file-preview").innerHTML = "";
+      document.getElementById("note-alert").innerHTML = "";
+      document.getElementById("note-modal-title").textContent = "✏️ Edit Note";
+      document.getElementById("save-note-btn").textContent = "💾 Save Changes";
+      document.getElementById("file-section").style.display = "none";
+      selectedFile = null;
+      openModal("note-modal");
+    };
+
+    window.handleNoteFile = function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 20 * 1024 * 1024) { showToast("File too large. Max 20MB.", "error"); return; }
+      selectedFile = file;
+      document.getElementById("note-file-preview").innerHTML = `<div class="file-preview"><span>${getFileIcon(file.name)}</span><span>${file.name}</span><span style="color:var(--text-muted);font-size:12px">${formatFileSize(file.size)}</span><span class="file-remove" onclick="clearNoteFile()">✕</span></div>`;
+    };
+    window.clearNoteFile = () => { selectedFile = null; document.getElementById("note-file").value = ""; document.getElementById("note-file-preview").innerHTML = ""; };
+
+    window.saveNote = async function() {
+      const editId = document.getElementById("edit-note-id").value;
+      const title = document.getElementById("note-title").value.trim();
+      const courseCode = document.getElementById("note-course").value;
+      const level = document.getElementById("note-level").value;
+      const description = document.getElementById("note-desc").value.trim();
+      const linkUrl = document.getElementById("note-link").value.trim();
+      const alertEl = document.getElementById("note-alert");
+      alertEl.innerHTML = "";
+      if (!title) { alertEl.innerHTML = `<div class="alert alert-danger">❌ Note title required.</div>`; return; }
+      if (!courseCode && !editId) { alertEl.innerHTML = `<div class="alert alert-danger">❌ Select a course.</div>`; return; }
+      if (!level && !editId) { alertEl.innerHTML = `<div class="alert alert-danger">❌ Select a level.</div>`; return; }
+
+      const btn = document.getElementById("save-note-btn");
+      btn.disabled = true; btn.innerHTML = `<span class="spinner-inline"></span> Saving...`;
+      showSpinner();
+
+      try {
+        if (editId) {
+          const courseOption = document.getElementById("note-course").selectedOptions[0];
+          await updateNote(editId, { title, courseCode: courseCode || undefined, level: level || undefined, description, courseTitle: courseOption?.dataset?.title || "" });
+          showToast("Note updated!", "success");
+        } else {
+          const courseOption = document.getElementById("note-course").selectedOptions[0];
+          const courseTitle = courseOption?.dataset?.title || "";
+          await uploadNote({ title, courseCode, courseTitle, level, description, linkUrl }, selectedFile);
+          showToast("Note uploaded! Students notified.", "success");
+        }
+        hideSpinner(); closeModal("note-modal");
+        allNotes = await getNotes();
+        populateCourseFilter(); renderNotes(allNotes);
+      } catch(e) {
+        hideSpinner(); btn.disabled = false;
+        btn.innerHTML = editId ? "💾 Save Changes" : "📚 Upload Note";
+        alertEl.innerHTML = `<div class="alert alert-danger">❌ ${e.message}</div>`;
+      }
+    };
+
+    window.deleteNoteById = function(noteId, title) {
+      confirmAction(`Delete note "${title}"? This will permanently remove the file from storage.`, async () => {
+        showSpinner();
+        try { await deleteNote(noteId); hideSpinner(); showToast("Note deleted.", "success"); allNotes = await getNotes(); populateCourseFilter(); renderNotes(allNotes); }
+        catch(e) { hideSpinner(); showToast(e.message, "error"); }
+      });
+    };
+
+    // Drag and drop
+    const ua = document.getElementById("note-upload-area");
+    ua.addEventListener("dragover", e => { e.preventDefault(); ua.classList.add("dragover"); });
+    ua.addEventListener("dragleave", () => ua.classList.remove("dragover"));
+    ua.addEventListener("drop", e => { e.preventDefault(); ua.classList.remove("dragover"); const f = e.dataTransfer.files[0]; if (f) { const dt = new DataTransfer(); dt.items.add(f); document.getElementById("note-file").files = dt.files; window.handleNoteFile({ target: { files: [f] } }); } });
+
+    window.handleLogout = async () => { await logoutUser(); window.location.href = "/professor/login.html"; };
+    window.toggleMobileNav = () => document.getElementById("mobile-nav").classList.toggle("open");
+    init();
+  </script>
+</body>
+</html>

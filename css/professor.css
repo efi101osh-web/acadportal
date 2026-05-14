@@ -1,0 +1,260 @@
+/* =============================================
+   ACADPORTAL — PROFESSOR PORTAL CSS
+   Top Navigation Bar Layout
+   ============================================= */
+
+/* ---- LAYOUT ---- */
+.prof-layout { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ---- TOP NAVBAR ---- */
+.prof-navbar {
+  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 100%);
+  height: 66px;
+  display: flex; align-items: center;
+  padding: 0 28px;
+  position: sticky; top: 0; z-index: 300;
+  box-shadow: 0 4px 20px rgba(8,30,68,0.35);
+  gap: 0;
+}
+
+.navbar-brand {
+  display: flex; align-items: center; gap: 11px;
+  text-decoration: none; flex-shrink: 0; margin-right: 36px;
+}
+.navbar-brand-icon {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; font-weight: 700; color: var(--navy-dark);
+}
+.navbar-brand-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; color: var(--white); font-weight: 700;
+}
+.navbar-brand-text em { color: var(--gold-light); font-style: normal; }
+
+/* Nav links */
+.navbar-nav {
+  display: flex; align-items: center; gap: 4px; flex: 1;
+}
+.navbar-nav-link {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: var(--radius-sm);
+  color: rgba(255,255,255,0.65); font-size: 13.5px; font-weight: 600;
+  text-decoration: none; transition: var(--transition);
+  white-space: nowrap; border-bottom: 2px solid transparent;
+}
+.navbar-nav-link .nav-icon { font-size: 17px; }
+.navbar-nav-link:hover {
+  color: var(--white); background: rgba(255,255,255,0.1);
+}
+.navbar-nav-link.active {
+  color: var(--gold-light);
+  background: rgba(201,150,42,0.15);
+  border-bottom-color: var(--gold-light);
+}
+
+/* Right side */
+.navbar-right {
+  display: flex; align-items: center; gap: 12px;
+  margin-left: auto; flex-shrink: 0;
+}
+
+.navbar-prof-badge {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 30px; padding: 6px 14px 6px 8px;
+  cursor: pointer; transition: var(--transition);
+}
+.navbar-prof-badge:hover { background: rgba(255,255,255,0.18); }
+.prof-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800; color: var(--navy-dark);
+}
+.prof-name { font-size: 13px; color: var(--white); font-weight: 700; }
+.prof-role { font-size: 10px; color: rgba(255,255,255,0.55); display: block; line-height: 1; }
+
+.navbar-logout-btn {
+  display: flex; align-items: center; gap: 7px;
+  background: rgba(224,64,64,0.18); border: 1px solid rgba(224,64,64,0.3);
+  color: #ff9090; padding: 7px 14px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 700; cursor: pointer; transition: var(--transition);
+  font-family: 'Nunito', sans-serif;
+}
+.navbar-logout-btn:hover { background: rgba(224,64,64,0.32); color: #ffb0b0; }
+
+/* Mobile hamburger */
+.navbar-mobile-toggle {
+  display: none; background: none; border: none;
+  color: var(--white); font-size: 22px; cursor: pointer; padding: 4px;
+  margin-left: auto;
+}
+
+/* ---- MOBILE NAV DROPDOWN ---- */
+.navbar-mobile-menu {
+  display: none; position: absolute;
+  top: 66px; left: 0; right: 0;
+  background: var(--navy-dark);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  flex-direction: column; padding: 10px 0;
+  z-index: 299; box-shadow: 0 8px 20px rgba(8,30,68,0.4);
+}
+.navbar-mobile-menu.open { display: flex; }
+.navbar-mobile-menu .navbar-nav-link {
+  border-radius: 0; padding: 13px 24px; border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-left: 3px solid transparent;
+}
+.navbar-mobile-menu .navbar-nav-link.active { border-left-color: var(--gold); border-bottom-color: rgba(255,255,255,0.06); }
+
+/* ---- MAIN CONTENT AREA ---- */
+.prof-content { flex: 1; padding: 28px; max-width: 1400px; margin: 0 auto; width: 100%; }
+
+/* ---- PROFESSOR DASHBOARD SPECIFIC ---- */
+.activity-list { display: flex; flex-direction: column; gap: 0; }
+.activity-item {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 14px 0; border-bottom: 1px solid var(--border);
+}
+.activity-item:last-child { border-bottom: none; }
+.activity-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  margin-top: 5px; flex-shrink: 0;
+}
+.activity-dot.gold { background: var(--gold); }
+.activity-dot.success { background: var(--success); }
+.activity-dot.navy { background: var(--navy-light); }
+.activity-dot.danger { background: var(--danger); }
+.activity-text { font-size: 13.5px; color: var(--text-mid); line-height: 1.4; }
+.activity-text strong { color: var(--navy); }
+.activity-time { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+/* ---- SUBMISSION TABLE EXTRAS ---- */
+.submission-row-late td:first-child { border-left: 3px solid var(--warning); }
+.grade-input {
+  width: 80px; padding: 6px 10px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border); font-family: 'Nunito', sans-serif;
+  font-size: 13px; font-weight: 700; text-align: center;
+  transition: var(--transition); outline: none;
+}
+.grade-input:focus { border-color: var(--navy-light); box-shadow: 0 0 0 3px rgba(30,77,160,0.1); }
+
+.remark-input {
+  width: 200px; padding: 6px 10px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border); font-family: 'Nunito', sans-serif;
+  font-size: 12px; transition: var(--transition); outline: none;
+}
+.remark-input:focus { border-color: var(--navy-light); }
+
+/* ---- STORAGE METER ---- */
+.storage-meter {
+  background: var(--bg); border-radius: var(--radius);
+  padding: 20px; border: 1px solid var(--border);
+}
+.storage-bar-wrap {
+  height: 12px; background: #dce6f5; border-radius: 8px;
+  overflow: hidden; margin: 12px 0 8px;
+}
+.storage-bar-fill {
+  height: 100%; border-radius: 8px;
+  background: linear-gradient(90deg, var(--success), #4de8a8);
+  transition: width 1s ease;
+}
+.storage-bar-fill.warn { background: linear-gradient(90deg, var(--warning), #f5c84a); }
+.storage-bar-fill.danger { background: linear-gradient(90deg, var(--danger), #f06060); }
+.storage-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: var(--text-mid); }
+
+/* ---- COURSE CHIPS ---- */
+.course-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.course-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #e8edf8; border: 1px solid #b8c8e8;
+  color: var(--navy); padding: 5px 12px; border-radius: 20px;
+  font-size: 13px; font-weight: 700;
+}
+.course-chip .chip-remove {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-muted); font-size: 14px; padding: 0; line-height: 1;
+  transition: var(--transition);
+}
+.course-chip .chip-remove:hover { color: var(--danger); }
+
+/* ---- SCORE ARCHIVE TABLE ---- */
+.archive-header-info {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 16px 20px; background: var(--gold-pale);
+  border-radius: var(--radius-sm); margin-bottom: 20px;
+  border: 1px solid #e8c97a;
+}
+.archive-info-item { font-size: 13px; font-weight: 600; color: var(--text-mid); }
+.archive-info-item strong { color: var(--navy); }
+
+/* ---- STUDENTS MONITORING ---- */
+.student-monitor-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.submitted-list, .not-submitted-list {
+  background: var(--white); border-radius: var(--radius);
+  border: 1px solid var(--border); overflow: hidden;
+}
+.list-header {
+  padding: 14px 18px; font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.submitted-list .list-header { background: #e6faf3; color: #137a50; }
+.not-submitted-list .list-header { background: #fdeaea; color: #aa2020; }
+.list-item {
+  padding: 11px 18px; font-size: 13px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px; color: var(--text-mid);
+}
+.list-item:last-child { border-bottom: none; }
+.list-item .item-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--bg); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; color: var(--navy); flex-shrink: 0;
+}
+
+/* ---- QUICK ACTIONS BAR ---- */
+.quick-actions {
+  display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px;
+  padding: 18px; background: var(--white);
+  border-radius: var(--radius); border: 1px solid var(--border);
+}
+.quick-action-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 18px; border-radius: var(--radius-sm);
+  font-size: 13.5px; font-weight: 700; cursor: pointer;
+  transition: var(--transition); border: none; font-family: 'Nunito', sans-serif;
+}
+.qa-blue { background: #e8f0ff; color: var(--navy); }
+.qa-blue:hover { background: var(--navy); color: var(--white); }
+.qa-gold { background: var(--gold-pale); color: var(--gold); }
+.qa-gold:hover { background: var(--gold); color: var(--navy-dark); }
+.qa-green { background: #e6faf3; color: #137a50; }
+.qa-green:hover { background: var(--success); color: var(--white); }
+
+/* ---- DEADLINE STATUS ---- */
+.deadline-status {
+  font-size: 12px; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.deadline-status.open { color: var(--success); }
+.deadline-status.closed { color: var(--danger); }
+.deadline-status.upcoming { color: var(--warning); }
+
+/* ---- PROFESSOR RESPONSIVE ---- */
+@media (max-width: 1024px) {
+  .navbar-nav { display: none; }
+  .navbar-mobile-toggle { display: flex; }
+  .navbar-right { gap: 8px; }
+  .prof-name { display: none; }
+}
+@media (max-width: 768px) {
+  .prof-content { padding: 16px; }
+  .student-monitor-row { grid-template-columns: 1fr; }
+  .quick-actions { gap: 8px; }
+  .prof-navbar { padding: 0 16px; }
+}

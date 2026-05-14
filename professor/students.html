@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Students — AcadPortal Professor</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/professor.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div id="spinner-overlay" class="spinner-overlay" style="display:none"><div class="spinner"></div></div>
+
+  <div class="prof-layout">
+    <nav class="prof-navbar">
+      <a href="dashboard.html" class="navbar-brand"><div class="navbar-brand-icon">A</div><span class="navbar-brand-text">Acad<em>Portal</em></span></a>
+      <div class="navbar-nav">
+        <a href="dashboard.html" class="navbar-nav-link">🏠 Dashboard</a>
+        <a href="courses.html" class="navbar-nav-link">📘 Courses</a>
+        <a href="notes.html" class="navbar-nav-link">📚 Notes</a>
+        <a href="assignments.html" class="navbar-nav-link">📝 Assignments</a>
+        <a href="submissions.html" class="navbar-nav-link">📤 Submissions</a>
+        <a href="students.html" class="navbar-nav-link active">👥 Students</a>
+        <a href="scores-archive.html" class="navbar-nav-link">🎯 Archive</a>
+        <a href="storage.html" class="navbar-nav-link">💾 Storage</a>
+      </div>
+      <div class="navbar-right">
+        <div class="navbar-prof-badge"><div class="prof-avatar">P</div><div><span class="prof-name">Professor</span><span class="prof-role">Administrator</span></div></div>
+        <button class="navbar-logout-btn" onclick="handleLogout()">🚪 Logout</button>
+      </div>
+      <button class="navbar-mobile-toggle" onclick="toggleMobileNav()">☰</button>
+    </nav>
+    <div class="navbar-mobile-menu" id="mobile-nav">
+      <a href="dashboard.html" class="navbar-nav-link">🏠 Dashboard</a>
+      <a href="submissions.html" class="navbar-nav-link">📤 Submissions</a>
+      <a href="students.html" class="navbar-nav-link active">👥 Students</a>
+    </div>
+
+    <div class="prof-content">
+      <h2 class="section-title">👥 Student Monitor</h2>
+
+      <!-- Tabs -->
+      <div style="display:flex;gap:4px;margin-bottom:24px;background:var(--bg);padding:4px;border-radius:10px;width:fit-content">
+        <button class="btn btn-primary btn-sm" id="tab-all" onclick="switchTab('all')">All Students</button>
+        <button class="btn btn-outline btn-sm" id="tab-monitor" onclick="switchTab('monitor')">Submission Monitor</button>
+      </div>
+
+      <!-- ALL STUDENTS TAB -->
+      <div id="tab-all-content">
+        <div class="filter-row" style="margin-bottom:16px">
+          <div class="search-bar" style="flex:1;max-width:320px">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="student-search" class="form-control" placeholder="Search by name, matric, dept..." oninput="filterStudents()" />
+          </div>
+          <select id="filter-level" class="form-control" onchange="filterStudents()">
+            <option value="">All Levels</option>
+            <option value="100">100 Level</option>
+            <option value="200">200 Level</option>
+            <option value="300">300 Level</option>
+            <option value="400">400 Level</option>
+            <option value="500">500 Level</option>
+            <option value="Postgraduate">Postgraduate</option>
+            <option value="PhD">PhD</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="exportStudents()">📥 Export CSV</button>
+          <span id="student-count" style="font-size:13px;color:var(--text-muted);font-weight:600"></span>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div id="students-table">
+            <div class="text-center" style="padding:60px"><div class="spinner-inline"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBMISSION MONITOR TAB -->
+      <div id="tab-monitor-content" style="display:none">
+        <div class="filter-row" style="margin-bottom:16px">
+          <select id="monitor-assignment" class="form-control" style="max-width:380px" onchange="loadMonitor()">
+            <option value="">-- Select an Assignment to Monitor --</option>
+          </select>
+        </div>
+        <div id="monitor-container">
+          <div class="alert alert-info">Select an assignment above to see who submitted and who didn't.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { requireAuth, logoutUser } from "../js/auth.js";
+    import { getAllStudents, getAssignments, getSubmissions } from "../js/professor.js";
+    import { showToast, formatDate, formatLevel, exportToCSV } from "../js/utils.js";
+
+    let allStudents = [], allAssignments = [], currentTab = "all";
+
+    async function init() {
+      try {
+        await requireAuth("professor");
+        [allStudents, allAssignments] = await Promise.all([getAllStudents(), getAssignments()]);
+        renderStudents(allStudents);
+        populateAssignmentSelect();
+      } catch(e) {}
+    }
+
+    function renderStudents(students) {
+      document.getElementById("student-count").textContent = `${students.length} student${students.length !== 1 ? "s" : ""}`;
+      const el = document.getElementById("students-table");
+      if (!students.length) {
+        el.innerHTML = `<div class="empty-state"><span class="empty-icon">👥</span><h4>No students registered yet</h4><p>Students will appear here after they register.</p></div>`;
+        return;
+      }
+      el.innerHTML = `<div class="table-wrap" style="border:none;border-radius:0"><table>
+        <thead><tr><th>#</th><th>Full Name</th><th>Matric Number</th><th>Email</th><th>Department</th><th>Level</th><th>Registered</th></tr></thead>
+        <tbody>${students.map((s, i) => `
+          <tr>
+            <td style="color:var(--text-muted);font-size:12px">${i + 1}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy-mid));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0">
+                  ${s.fullName?.[0] || "?"}
+                </div>
+                <strong>${s.fullName}</strong>
+              </div>
+            </td>
+            <td style="font-weight:700;font-size:13px">${s.matricNumber}</td>
+            <td style="font-size:13px">${s.email}</td>
+            <td style="font-size:13px">${s.department}</td>
+            <td><span class="badge badge-gold">${formatLevel(s.level)}</span></td>
+            <td style="font-size:12px;color:var(--text-muted)">${formatDate(s.createdAt)}</td>
+          </tr>`).join("")}
+        </tbody></table></div>`;
+    }
+
+    window.filterStudents = function() {
+      const q = document.getElementById("student-search").value.toLowerCase();
+      const level = document.getElementById("filter-level").value;
+      let f = allStudents;
+      if (q) f = f.filter(s =>
+        s.fullName.toLowerCase().includes(q) ||
+        s.matricNumber.toLowerCase().includes(q) ||
+        s.department.toLowerCase().includes(q) ||
+        s.email.toLowerCase().includes(q));
+      if (level) f = f.filter(s => s.level === level);
+      renderStudents(f);
+    };
+
+    window.exportStudents = function() {
+      const data = allStudents.map(s => ({
+        "Full Name": s.fullName,
+        "Matric Number": s.matricNumber,
+        "Email": s.email,
+        "Department": s.department,
+        "Level": formatLevel(s.level),
+        "Registered": formatDate(s.createdAt)
+      }));
+      exportToCSV(data, "AcadPortal_Students");
+      showToast("CSV exported!", "success");
+    };
+
+    function populateAssignmentSelect() {
+      const sel = document.getElementById("monitor-assignment");
+      sel.innerHTML = `<option value="">-- Select an Assignment to Monitor --</option>` +
+        allAssignments.map(a => `<option value="${a.id}">${a.courseCode}: ${a.title.slice(0, 50)} (${formatLevel(a.level)})</option>`).join("");
+    }
+
+    window.loadMonitor = async function() {
+      const assignId = document.getElementById("monitor-assignment").value;
+      const container = document.getElementById("monitor-container");
+      if (!assignId) {
+        container.innerHTML = `<div class="alert alert-info">Select an assignment above to see who submitted and who didn't.</div>`;
+        return;
+      }
+      container.innerHTML = `<div class="text-center" style="padding:40px"><div class="spinner-inline"></div></div>`;
+      const assignment = allAssignments.find(a => a.id === assignId);
+      const subs = await getSubmissions(assignId);
+      const submittedUids = new Set(subs.map(s => s.studentUid));
+      const levelStudents = allStudents.filter(s => s.level === assignment.level);
+      const submitted = levelStudents.filter(s => submittedUids.has(s.id || s.uid));
+      const notSubmitted = levelStudents.filter(s => !submittedUids.has(s.id || s.uid));
+
+      container.innerHTML = `
+        <div class="alert alert-info" style="margin-bottom:16px">
+          📊 <strong>${assignment.courseCode}: ${assignment.title}</strong> —
+          ${submitted.length} submitted · ${notSubmitted.length} not yet submitted · ${formatLevel(assignment.level)} students
+        </div>
+        <div class="student-monitor-row">
+          <div class="submitted-list">
+            <div class="list-header">✅ Submitted (${submitted.length})</div>
+            ${submitted.length
+              ? submitted.map(s => {
+                  const sub = subs.find(x => x.studentUid === (s.id || s.uid));
+                  return `<div class="list-item">
+                    <div class="item-avatar">${s.fullName?.[0] || "?"}</div>
+                    <div style="flex:1">
+                      <div style="font-weight:700;font-size:13px">${s.fullName}</div>
+                      <div style="font-size:11px;color:var(--text-muted)">${s.matricNumber}</div>
+                    </div>
+                    ${sub?.isLate ? `<span class="badge badge-late" style="font-size:10px">LATE</span>` : `<span class="badge badge-success" style="font-size:10px">On Time</span>`}
+                    ${sub?.graded ? `<span class="badge badge-navy" style="font-size:10px">Graded: ${sub.score}</span>` : ""}
+                  </div>`;
+                }).join("")
+              : `<div class="list-item" style="color:var(--text-muted)">No submissions yet</div>`}
+          </div>
+          <div class="not-submitted-list">
+            <div class="list-header">❌ Not Submitted (${notSubmitted.length})</div>
+            ${notSubmitted.length
+              ? notSubmitted.map(s => `
+                  <div class="list-item">
+                    <div class="item-avatar">${s.fullName?.[0] || "?"}</div>
+                    <div style="flex:1">
+                      <div style="font-weight:700;font-size:13px">${s.fullName}</div>
+                      <div style="font-size:11px;color:var(--text-muted)">${s.matricNumber} · ${s.department}</div>
+                    </div>
+                  </div>`).join("")
+              : `<div class="list-item" style="color:var(--text-muted)">All students submitted!</div>`}
+          </div>
+        </div>`;
+    };
+
+    window.switchTab = function(tab) {
+      currentTab = tab;
+      document.getElementById("tab-all-content").style.display = tab === "all" ? "block" : "none";
+      document.getElementById("tab-monitor-content").style.display = tab === "monitor" ? "block" : "none";
+      document.getElementById("tab-all").className = tab === "all" ? "btn btn-primary btn-sm" : "btn btn-outline btn-sm";
+      document.getElementById("tab-monitor").className = tab === "monitor" ? "btn btn-primary btn-sm" : "btn btn-outline btn-sm";
+    };
+
+    window.handleLogout = async () => { await logoutUser(); window.location.href = "/professor/login.html"; };
+    window.toggleMobileNav = () => document.getElementById("mobile-nav").classList.toggle("open");
+    init();
+  </script>
+</body>
+</html>

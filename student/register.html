@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Register — AcadPortal</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/auth.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div id="spinner-overlay" class="spinner-overlay" style="display:none"><div class="spinner"></div></div>
+
+  <main class="auth-page">
+    <div class="auth-card register-card">
+      <!-- LEFT: Registration form -->
+      <div class="auth-left-scroll">
+        <div class="auth-logo">
+          <div class="logo-icon">A</div>
+          <span>Acad<em>Portal</em></span>
+        </div>
+        
+        <h1 class="auth-title">Create Account</h1>
+        <p class="auth-subtitle">Register to access your student portal</p>
+        
+        <div id="alert-area"></div>
+        
+        <div class="register-grid">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <div class="input-icon-wrap">
+              <span class="icon">👤</span>
+              <input type="text" id="fullName" class="form-control" placeholder="e.g. John Obi Ugwu" />
+            </div>
+            <div class="form-error" id="err-name"></div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Matric Number *</label>
+            <div class="input-icon-wrap">
+              <span class="icon">🔖</span>
+              <input type="text" id="matricNumber" class="form-control" placeholder="e.g. UCC/2024/001" />
+            </div>
+            <div class="form-error" id="err-matric"></div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Email Address *</label>
+            <div class="input-icon-wrap">
+              <span class="icon">✉️</span>
+              <input type="email" id="email" class="form-control" placeholder="your@email.com" autocomplete="email" />
+            </div>
+            <div class="form-error" id="err-email"></div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Department *</label>
+            <div class="input-icon-wrap">
+              <span class="icon">🏛️</span>
+              <input type="text" id="department" class="form-control" placeholder="e.g. Computer Science" />
+            </div>
+            <div class="form-error" id="err-dept"></div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Level *</label>
+            <select id="level" class="form-control">
+              <option value="">-- Select your level --</option>
+              <option value="100">100 Level</option>
+              <option value="200">200 Level</option>
+              <option value="300">300 Level</option>
+              <option value="400">400 Level</option>
+              <option value="500">500 Level</option>
+              <option value="Postgraduate">Postgraduate</option>
+              <option value="PhD">PhD</option>
+            </select>
+            <div class="form-error" id="err-level"></div>
+          </div>
+          
+          <div class="form-group">
+            <!-- Empty space for grid alignment -->
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Password *</label>
+            <div class="input-icon-wrap">
+              <span class="icon">🔒</span>
+              <input type="password" id="password" class="form-control" placeholder="Min 6 characters" autocomplete="new-password" />
+            </div>
+            <div class="form-hint">At least 6 characters</div>
+            <div class="form-error" id="err-pwd"></div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Confirm Password *</label>
+            <div class="input-icon-wrap">
+              <span class="icon">🔒</span>
+              <input type="password" id="confirmPassword" class="form-control" placeholder="Re-enter your password" />
+            </div>
+            <div class="form-error" id="err-cpwd"></div>
+          </div>
+        </div>
+        
+        <div class="show-password-wrap" style="margin-bottom:20px">
+          <input type="checkbox" id="show-pwd" onchange="togglePasswords()" />
+          <label for="show-pwd">Show passwords</label>
+        </div>
+        
+        <button class="btn btn-primary btn-block btn-lg" id="register-btn" onclick="handleRegister()">
+          🎓 Create My Account
+        </button>
+        
+        <div class="auth-footer-link">
+          Already have an account? <a href="login.html">Log in here</a>
+        </div>
+        <div class="auth-footer-link" style="margin-top:8px">
+          <a href="../index.html" style="color:var(--text-muted);font-size:12px">← Back to Home</a>
+        </div>
+      </div>
+      
+      <!-- RIGHT: Brand panel -->
+      <div class="auth-right">
+        <div class="auth-brand">
+          <div class="auth-brand-logo">
+            <span class="logo-letter">A</span>
+          </div>
+          <h2>Acad<span>Portal</span></h2>
+          <p class="univ-name">University of Calabar<br/>Student Registration</p>
+          <p class="auth-brand-desc">
+            Your professor has invited you to join AcadPortal. Fill in your details to get access to notes, assignments and your scores.
+          </p>
+          <a href="../index.html" class="auth-home-btn">🏠 Home</a>
+          <div class="auth-features">
+            <div class="auth-feature-item">One-time registration</div>
+            <div class="auth-feature-item">Access notes for your level only</div>
+            <div class="auth-feature-item">Submit assignments securely</div>
+            <div class="auth-feature-item">Get grades in real-time</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { registerStudent, redirectIfLoggedIn } from "../js/auth.js";
+    import { showToast, showSpinner, hideSpinner } from "../js/utils.js";
+
+    redirectIfLoggedIn(false);
+
+    window.togglePasswords = function() {
+      const type = document.getElementById("show-pwd").checked ? "text" : "password";
+      document.getElementById("password").type = type;
+      document.getElementById("confirmPassword").type = type;
+    };
+
+    window.handleRegister = async function() {
+      const alertArea = document.getElementById("alert-area");
+      alertArea.innerHTML = "";
+
+      const fields = ["err-name", "err-matric", "err-email", "err-dept", "err-level", "err-pwd", "err-cpwd"];
+      fields.forEach(id => { const el = document.getElementById(id); if(el) el.classList.remove("show"); });
+
+      const fullName = document.getElementById("fullName").value.trim();
+      const matricNumber = document.getElementById("matricNumber").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const department = document.getElementById("department").value.trim();
+      const level = document.getElementById("level").value;
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+
+      let valid = true;
+      const showErr = (id, msg) => { const el = document.getElementById(id); el.textContent = msg; el.classList.add("show"); valid = false; };
+
+      if (!fullName || fullName.length < 3) showErr("err-name", "Enter your full name (at least 3 characters)");
+      if (!matricNumber || matricNumber.length < 3) showErr("err-matric", "Enter a valid matric number");
+      if (!email || !email.includes("@")) showErr("err-email", "Enter a valid email address");
+      if (!department || department.length < 2) showErr("err-dept", "Enter your department name");
+      if (!level) showErr("err-level", "Select your level");
+      if (!password || password.length < 6) showErr("err-pwd", "Password must be at least 6 characters");
+      if (password !== confirmPassword) showErr("err-cpwd", "Passwords do not match");
+
+      if (!valid) return;
+
+      const btn = document.getElementById("register-btn");
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-inline"></span> Creating your account...`;
+      showSpinner();
+
+      try {
+        await registerStudent({ fullName, email, password, matricNumber, department, level });
+        hideSpinner();
+        showToast("Account created successfully! Welcome to AcadPortal.", "success");
+        alertArea.innerHTML = `<div class="alert alert-success">✅ Account created! Redirecting to your dashboard...</div>`;
+        setTimeout(() => { window.location.href = "/student/dashboard.html"; }, 1500);
+      } catch (err) {
+        hideSpinner();
+        btn.disabled = false;
+        btn.innerHTML = `🎓 Create My Account`;
+        let msg = err.message || "Registration failed. Please try again.";
+        if (err.code === "auth/email-already-in-use") msg = "This email is already registered. Try logging in instead.";
+        if (err.code === "auth/weak-password") msg = "Password is too weak. Use at least 6 characters.";
+        alertArea.innerHTML = `<div class="alert alert-danger">❌ ${msg}</div>`;
+      }
+    };
+
+    document.addEventListener("keydown", (e) => { if (e.key === "Enter") window.handleRegister(); });
+  </script>
+</body>
+</html>

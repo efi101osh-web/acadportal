@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assignments — AcadPortal Professor</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/professor.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div id="spinner-overlay" class="spinner-overlay" style="display:none"><div class="spinner"></div></div>
+
+  <!-- ASSIGNMENT MODAL -->
+  <div class="modal-backdrop" id="assign-modal">
+    <div class="modal" style="max-width:620px">
+      <div class="modal-header"><h3 id="assign-modal-title">📝 Create Assignment</h3><button class="modal-close" onclick="closeModal('assign-modal')">✕</button></div>
+      <div class="modal-body">
+        <div id="assign-alert"></div>
+        <input type="hidden" id="edit-assign-id" />
+        <div class="form-group"><label class="form-label">Assignment Title *</label><input type="text" id="assign-title" class="form-control" placeholder="e.g. Lab Report 1 — Data Structures" /></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="form-group">
+            <label class="form-label">Course *</label>
+            <select id="assign-course" class="form-control"><option value="">-- Select Course --</option></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Level *</label>
+            <select id="assign-level" class="form-control">
+              <option value="">-- Select Level --</option>
+              <option value="100">100 Level</option>
+              <option value="200">200 Level</option>
+              <option value="300">300 Level</option>
+              <option value="400">400 Level</option>
+              <option value="500">500 Level</option>
+              <option value="Postgraduate">Postgraduate</option>
+              <option value="PhD">PhD</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="form-group">
+            <label class="form-label">Deadline *</label>
+            <input type="datetime-local" id="assign-deadline" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select id="assign-status" class="form-control"><option value="open">Open (students can submit)</option><option value="closed">Closed (no submissions)</option></select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Instructions</label>
+          <textarea id="assign-instructions" class="form-control" rows="4" placeholder="Describe what students should do..."></textarea>
+        </div>
+        <div id="assign-file-section">
+          <div class="form-group">
+            <label class="form-label">Attach Assignment File (Optional)</label>
+            <div class="upload-area" id="assign-upload-area" onclick="document.getElementById('assign-file').click()">
+              <span class="upload-icon">📎</span>
+              <p>Click to attach a file (question paper, etc.)</p>
+            </div>
+            <input type="file" id="assign-file" style="display:none" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.txt" onchange="handleAssignFile(event)" />
+            <div id="assign-file-preview"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('assign-modal')">Cancel</button>
+        <button class="btn btn-primary" id="save-assign-btn" onclick="saveAssignment()">📝 Create Assignment</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="prof-layout">
+    <nav class="prof-navbar">
+      <a href="dashboard.html" class="navbar-brand"><div class="navbar-brand-icon">A</div><span class="navbar-brand-text">Acad<em>Portal</em></span></a>
+      <div class="navbar-nav">
+        <a href="dashboard.html" class="navbar-nav-link">🏠 Dashboard</a>
+        <a href="courses.html" class="navbar-nav-link">📘 Courses</a>
+        <a href="notes.html" class="navbar-nav-link">📚 Notes</a>
+        <a href="assignments.html" class="navbar-nav-link active">📝 Assignments</a>
+        <a href="submissions.html" class="navbar-nav-link">📤 Submissions</a>
+        <a href="students.html" class="navbar-nav-link">👥 Students</a>
+        <a href="scores-archive.html" class="navbar-nav-link">🎯 Archive</a>
+        <a href="storage.html" class="navbar-nav-link">💾 Storage</a>
+      </div>
+      <div class="navbar-right">
+        <div class="navbar-prof-badge"><div class="prof-avatar">P</div><div><span class="prof-name">Professor</span><span class="prof-role">Administrator</span></div></div>
+        <button class="navbar-logout-btn" onclick="handleLogout()">🚪 Logout</button>
+      </div>
+      <button class="navbar-mobile-toggle" onclick="toggleMobileNav()">☰</button>
+    </nav>
+    <div class="navbar-mobile-menu" id="mobile-nav">
+      <a href="dashboard.html" class="navbar-nav-link">🏠 Dashboard</a>
+      <a href="notes.html" class="navbar-nav-link">📚 Notes</a>
+      <a href="assignments.html" class="navbar-nav-link active">📝 Assignments</a>
+      <a href="submissions.html" class="navbar-nav-link">📤 Submissions</a>
+    </div>
+
+    <div class="prof-content">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+        <h2 class="section-title" style="margin:0">📝 Assignments</h2>
+        <button class="btn btn-primary" onclick="openCreateModal()">+ Create Assignment</button>
+      </div>
+      <div class="filter-row">
+        <div class="search-bar" style="flex:1;max-width:300px">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" class="form-control" placeholder="Search..." oninput="filterAssignments()" />
+        </div>
+        <select id="filter-level" class="form-control" onchange="filterAssignments()">
+          <option value="">All Levels</option>
+          <option value="100">100 Level</option>
+          <option value="200">200 Level</option>
+          <option value="300">300 Level</option>
+          <option value="400">400 Level</option>
+          <option value="500">500 Level</option>
+          <option value="Postgraduate">Postgraduate</option>
+          <option value="PhD">PhD</option>
+        </select>
+        <select id="filter-status" class="form-control" onchange="filterAssignments()">
+          <option value="">All Status</option>
+          <option value="open">Open</option>
+          <option value="closed">Closed</option>
+        </select>
+      </div>
+      <div id="assignments-container">
+        <div class="text-center" style="padding:60px"><div class="spinner-inline"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { requireAuth, logoutUser } from "../js/auth.js";
+    import { getAssignments, createAssignment, updateAssignment, deleteAssignment, getCourses } from "../js/professor.js";
+    import { showToast, showSpinner, hideSpinner, openModal, closeModal, formatDate, formatDateTime, getDeadlineStatus, getFileIcon, formatFileSize, formatLevel, confirmAction } from "../js/utils.js";
+
+    window.openModal = openModal; window.closeModal = closeModal;
+    let allAssignments = [], allCourses = [], selectedFile = null;
+
+    async function init() {
+      try {
+        await requireAuth("professor");
+        allCourses = await getCourses();
+        populateCourseDropdown();
+        allAssignments = await getAssignments();
+        renderAssignments(allAssignments);
+      } catch(e) {}
+    }
+
+    function populateCourseDropdown() {
+      const sel = document.getElementById("assign-course");
+      sel.innerHTML = `<option value="">-- Select Course --</option>` + allCourses.map(c => `<option value="${c.code}" data-title="${c.title}">${c.code} — ${c.title}</option>`).join("");
+    }
+
+    function renderAssignments(items) {
+      const el = document.getElementById("assignments-container");
+      if (!items.length) { el.innerHTML = `<div class="empty-state"><span class="empty-icon">📝</span><h4>No assignments yet</h4><p>Create your first assignment.</p></div>`; return; }
+      el.innerHTML = `<div class="table-wrap"><table>
+        <thead><tr><th>Title</th><th>Course</th><th>Level</th><th>Deadline</th><th>Status</th><th>Submissions</th><th>Actions</th></tr></thead>
+        <tbody>${items.map(a => {
+          const d = getDeadlineStatus(a.deadline);
+          return `<tr>
+            <td><strong>${a.title}</strong>${a.instructions?`<div style="font-size:12px;color:var(--text-muted)">${a.instructions.slice(0,50)}…</div>`:""}</td>
+            <td><span class="badge badge-navy">${a.courseCode}</span></td>
+            <td><span class="badge badge-gold">${formatLevel(a.level)}</span></td>
+            <td><span class="deadline-bar ${d.cls}" style="font-size:12px">${d.icon} ${d.label}</span></td>
+            <td><span class="deadline-status ${a.status}">${a.status === "open" ? "🟢 Open" : "🔒 Closed"}</span></td>
+            <td>📤 ${a.submissionCount || 0}</td>
+            <td>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <a href="submissions.html?assignment=${a.id}" class="btn btn-outline btn-sm">📤 View</a>
+                <button class="btn btn-outline btn-sm" onclick="openEditAssignModal('${a.id}')">✏️ Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteAssign('${a.id}', '${a.title.replace(/'/g,"\\'")}')">🗑</button>
+              </div>
+            </td>
+          </tr>`;
+        }).join("")}</tbody></table></div>`;
+    }
+
+    window.filterAssignments = function() {
+      const q = document.getElementById("search-input").value.toLowerCase();
+      const level = document.getElementById("filter-level").value;
+      const status = document.getElementById("filter-status").value;
+      let f = allAssignments;
+      if (q) f = f.filter(a => a.title.toLowerCase().includes(q) || a.courseCode.toLowerCase().includes(q));
+      if (level) f = f.filter(a => a.level === level);
+      if (status) f = f.filter(a => a.status === status);
+      renderAssignments(f);
+    };
+
+    window.openCreateModal = function() {
+      document.getElementById("edit-assign-id").value = "";
+      ["assign-title","assign-instructions"].forEach(id => document.getElementById(id).value = "");
+      ["assign-course","assign-level","assign-status"].forEach(id => document.getElementById(id).value = id === "assign-status" ? "open" : "");
+      document.getElementById("assign-deadline").value = "";
+      document.getElementById("assign-file-preview").innerHTML = "";
+      document.getElementById("assign-alert").innerHTML = "";
+      document.getElementById("assign-modal-title").textContent = "📝 Create Assignment";
+      document.getElementById("save-assign-btn").textContent = "📝 Create Assignment";
+      document.getElementById("assign-file-section").style.display = "block";
+      selectedFile = null;
+      openModal("assign-modal");
+    };
+
+    window.openEditAssignModal = function(id) {
+      const a = allAssignments.find(x => x.id === id);
+      if (!a) return;
+      document.getElementById("edit-assign-id").value = id;
+      document.getElementById("assign-title").value = a.title;
+      document.getElementById("assign-course").value = a.courseCode;
+      document.getElementById("assign-level").value = a.level;
+      document.getElementById("assign-status").value = a.status;
+      document.getElementById("assign-instructions").value = a.instructions || "";
+      const dl = a.deadline?.toDate ? a.deadline.toDate() : new Date(a.deadline);
+      document.getElementById("assign-deadline").value = dl.toISOString().slice(0,16);
+      document.getElementById("assign-file-preview").innerHTML = "";
+      document.getElementById("assign-alert").innerHTML = "";
+      document.getElementById("assign-modal-title").textContent = "✏️ Edit Assignment";
+      document.getElementById("save-assign-btn").textContent = "💾 Save Changes";
+      document.getElementById("assign-file-section").style.display = "none";
+      selectedFile = null;
+      openModal("assign-modal");
+    };
+
+    window.handleAssignFile = function(e) {
+      const f = e.target.files[0]; if (!f) return;
+      if (f.size > 20*1024*1024) { showToast("File too large. Max 20MB.", "error"); return; }
+      selectedFile = f;
+      document.getElementById("assign-file-preview").innerHTML = `<div class="file-preview"><span>${getFileIcon(f.name)}</span><span>${f.name}</span><span style="color:var(--text-muted);font-size:12px">${formatFileSize(f.size)}</span><span class="file-remove" onclick="clearAssignFile()">✕</span></div>`;
+    };
+    window.clearAssignFile = () => { selectedFile = null; document.getElementById("assign-file").value = ""; document.getElementById("assign-file-preview").innerHTML = ""; };
+
+    window.saveAssignment = async function() {
+      const editId = document.getElementById("edit-assign-id").value;
+      const title = document.getElementById("assign-title").value.trim();
+      const courseCode = document.getElementById("assign-course").value;
+      const level = document.getElementById("assign-level").value;
+      const deadline = document.getElementById("assign-deadline").value;
+      const status = document.getElementById("assign-status").value;
+      const instructions = document.getElementById("assign-instructions").value.trim();
+      const alertEl = document.getElementById("assign-alert");
+      alertEl.innerHTML = "";
+      if (!title) { alertEl.innerHTML = `<div class="alert alert-danger">❌ Title required.</div>`; return; }
+      if (!editId && !courseCode) { alertEl.innerHTML = `<div class="alert alert-danger">❌ Select a course.</div>`; return; }
+      if (!editId && !level) { alertEl.innerHTML = `<div class="alert alert-danger">❌ Select a level.</div>`; return; }
+      if (!deadline) { alertEl.innerHTML = `<div class="alert alert-danger">❌ Set a deadline.</div>`; return; }
+      const btn = document.getElementById("save-assign-btn");
+      btn.disabled = true; btn.innerHTML = `<span class="spinner-inline"></span> Saving...`;
+      showSpinner();
+      try {
+        if (editId) {
+          await updateAssignment(editId, { title, courseCode, level, deadline, status, instructions });
+          showToast("Assignment updated!", "success");
+        } else {
+          const opt = document.getElementById("assign-course").selectedOptions[0];
+          await createAssignment({ title, courseCode, courseTitle: opt?.dataset?.title || "", level, deadline, instructions }, selectedFile);
+          showToast("Assignment created! Students notified.", "success");
+        }
+        hideSpinner(); closeModal("assign-modal");
+        allAssignments = await getAssignments();
+        renderAssignments(allAssignments);
+      } catch(e) {
+        hideSpinner(); btn.disabled = false;
+        btn.innerHTML = editId ? "💾 Save Changes" : "📝 Create Assignment";
+        alertEl.innerHTML = `<div class="alert alert-danger">❌ ${e.message}</div>`;
+      }
+    };
+
+    window.deleteAssign = function(id, title) {
+      confirmAction(`Delete assignment "${title}"? This will also delete ALL student submissions for this assignment.`, async () => {
+        showSpinner();
+        try { await deleteAssignment(id); hideSpinner(); showToast("Assignment and its submissions deleted.", "success"); allAssignments = await getAssignments(); renderAssignments(allAssignments); }
+        catch(e) { hideSpinner(); showToast(e.message, "error"); }
+      });
+    };
+
+    const ua = document.getElementById("assign-upload-area");
+    ua.addEventListener("dragover", e => { e.preventDefault(); ua.classList.add("dragover"); });
+    ua.addEventListener("dragleave", () => ua.classList.remove("dragover"));
+    ua.addEventListener("drop", e => { e.preventDefault(); ua.classList.remove("dragover"); const f = e.dataTransfer.files[0]; if (f) { const dt = new DataTransfer(); dt.items.add(f); document.getElementById("assign-file").files = dt.files; window.handleAssignFile({ target: { files: [f] } }); } });
+
+    window.handleLogout = async () => { await logoutUser(); window.location.href = "/professor/login.html"; };
+    window.toggleMobileNav = () => document.getElementById("mobile-nav").classList.toggle("open");
+    init();
+  </script>
+</body>
+</html>

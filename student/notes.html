@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lecture Notes — AcadPortal Student</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/student.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div class="student-layout">
+    <!-- SIDEBAR (same structure — included via JS below) -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <a href="dashboard.html" class="sidebar-brand">
+          <div class="sidebar-brand-icon">A</div>
+          <span class="sidebar-brand-text">Acad<em>Portal</em></span>
+        </a>
+        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+      </div>
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebar-avatar">?</div>
+        <div class="sidebar-user-info">
+          <div class="name" id="sidebar-name">Loading...</div>
+          <div class="level" id="sidebar-level">— Level</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a href="dashboard.html" class="nav-link" data-title="Dashboard"><span class="nav-icon">🏠</span><span class="nav-text">Dashboard</span></a>
+        <a href="notes.html" class="nav-link active" data-title="Notes"><span class="nav-icon">📚</span><span class="nav-text">Lecture Notes</span></a>
+        <a href="assignments.html" class="nav-link" data-title="Assignments"><span class="nav-icon">📝</span><span class="nav-text">Assignments</span></a>
+        <div class="nav-section-label">My Records</div>
+        <a href="submissions.html" class="nav-link" data-title="Submissions"><span class="nav-icon">📤</span><span class="nav-text">My Submissions</span></a>
+        <a href="scores.html" class="nav-link" data-title="Scores"><span class="nav-icon">🎯</span><span class="nav-text">My Scores</span></a>
+        <div class="nav-section-label">Account</div>
+        <a href="notifications.html" class="nav-link" data-title="Notifications"><span class="nav-icon">🔔</span><span class="nav-text">Notifications</span><span class="nav-badge" id="nav-notif-count" style="display:none">0</span></a>
+        <a href="profile.html" class="nav-link" data-title="Profile"><span class="nav-icon">👤</span><span class="nav-text">My Profile</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="sidebar-logout" onclick="handleLogout()"><span class="nav-icon">🚪</span><span>Logout</span></button>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+    <main class="student-main" id="student-main">
+      <div class="student-topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="openMobileSidebar()">☰</button>
+          <span class="topbar-page-title">Lecture Notes</span>
+        </div>
+        <div class="topbar-right">
+          <button class="topbar-notif-btn" onclick="window.location.href='notifications.html'">🔔<span class="notif-count" id="notif-count" style="display:none">0</span></button>
+          <div class="topbar-avatar" id="topbar-avatar" onclick="window.location.href='profile.html'">?</div>
+        </div>
+      </div>
+
+      <div class="student-content">
+        <h2 class="section-title">📚 Lecture Notes</h2>
+
+        <!-- Filter row -->
+        <div class="filter-row">
+          <div class="search-bar" style="flex:1;max-width:340px">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" class="form-control" placeholder="Search notes..." oninput="filterNotes()" />
+          </div>
+          <select id="filter-course" class="form-control" onchange="filterNotes()">
+            <option value="">All Courses</option>
+          </select>
+          <span id="notes-count" class="text-muted" style="font-size:13px;font-weight:600"></span>
+        </div>
+
+        <div id="notes-container">
+          <div class="text-center" style="padding:60px"><div class="spinner-inline"></div> <p style="margin-top:12px;color:var(--text-muted)">Loading notes...</p></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { requireAuth, logoutUser, getUserProfile } from "../js/auth.js";
+    import { getNotesForStudent, recordNoteDownload } from "../js/student.js";
+    import { getUnreadCount, updateNotifBadge } from "../js/notifications.js";
+    import { showToast, formatDate, getFileIcon, formatFileSize, getInitials, formatLevel } from "../js/utils.js";
+
+    let allNotes = [], profile = null, currentUser = null;
+
+    async function init() {
+      try {
+        currentUser = await requireAuth("student");
+        profile = await getUserProfile(currentUser.uid);
+        if (!profile) { window.location.href = "/student/login.html"; return; }
+        
+        document.getElementById("sidebar-name").textContent = profile.fullName;
+        document.getElementById("sidebar-level").textContent = formatLevel(profile.level);
+        const initials = getInitials(profile.fullName);
+        document.getElementById("sidebar-avatar").textContent = initials;
+        document.getElementById("topbar-avatar").textContent = initials;
+
+        const count = await getUnreadCount(currentUser.uid, profile.level);
+        updateNotifBadge(count);
+
+        allNotes = await getNotesForStudent(profile.level);
+        populateCourseFilter();
+        renderNotes(allNotes);
+      } catch(e) {}
+    }
+
+    function populateCourseFilter() {
+      const courses = [...new Set(allNotes.map(n => n.courseCode))].sort();
+      const sel = document.getElementById("filter-course");
+      courses.forEach(c => { const o = document.createElement("option"); o.value = c; o.textContent = c; sel.appendChild(o); });
+    }
+
+    function renderNotes(notes) {
+      document.getElementById("notes-count").textContent = `${notes.length} note${notes.length !== 1 ? "s" : ""}`;
+      const container = document.getElementById("notes-container");
+      if (!notes.length) {
+        container.innerHTML = `<div class="empty-state"><span class="empty-icon">📚</span><h4>No notes found</h4><p>No lecture notes have been uploaded for ${formatLevel(profile.level)} yet. Check back soon.</p></div>`;
+        return;
+      }
+      container.innerHTML = `<div class="items-grid">${notes.map(n => `
+        <div class="item-card">
+          <div class="item-card-header">
+            <h4>${n.title}</h4>
+            <span class="badge badge-navy">${n.courseCode}</span>
+          </div>
+          ${n.description ? `<p class="item-card-desc">${n.description}</p>` : ""}
+          <div class="item-card-meta">
+            <span>${getFileIcon(n.fileName)} ${n.isLink ? "External Link" : (n.fileName || "File")}</span>
+            ${n.fileSize ? `<span>📦 ${formatFileSize(n.fileSize)}</span>` : ""}
+            <span>📅 ${formatDate(n.createdAt)}</span>
+            <span>⬇ ${n.downloadCount || 0} downloads</span>
+          </div>
+          <div class="item-card-footer">
+            <span class="badge badge-gold">📚 ${formatLevel(n.level)}</span>
+            ${n.fileUrl
+              ? `<a href="${n.fileUrl}" target="_blank" rel="noopener" class="btn btn-primary btn-sm" onclick="trackDownload('${n.id}')">
+                  ${n.isLink ? "🔗 Open Link" : "⬇ Download"}
+                </a>`
+              : `<span class="text-muted" style="font-size:12px">No file attached</span>`
+            }
+          </div>
+        </div>`).join("")}</div>`;
+    }
+
+    window.filterNotes = function() {
+      const query = document.getElementById("search-input").value.toLowerCase();
+      const course = document.getElementById("filter-course").value;
+      let filtered = allNotes;
+      if (query) filtered = filtered.filter(n => n.title.toLowerCase().includes(query) || n.courseCode.toLowerCase().includes(query) || (n.description || "").toLowerCase().includes(query));
+      if (course) filtered = filtered.filter(n => n.courseCode === course);
+      renderNotes(filtered);
+    };
+
+    window.trackDownload = async function(noteId) {
+      try { await recordNoteDownload(noteId); } catch(e) {}
+    };
+
+    window.handleLogout = async function() { await logoutUser(); window.location.href = "/student/login.html"; };
+    window.toggleSidebar = () => document.getElementById("sidebar").classList.toggle("collapsed");
+    window.openMobileSidebar = () => { document.getElementById("sidebar").classList.add("mobile-open"); document.getElementById("sidebar-overlay").style.display = "block"; };
+    window.closeMobileSidebar = () => { document.getElementById("sidebar").classList.remove("mobile-open"); document.getElementById("sidebar-overlay").style.display = "none"; };
+
+    init();
+  </script>
+</body>
+</html>

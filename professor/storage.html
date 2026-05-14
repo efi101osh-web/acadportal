@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Storage — AcadPortal Professor</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/professor.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div id="spinner-overlay" class="spinner-overlay" style="display:none"><div class="spinner"></div></div>
+
+  <div class="prof-layout">
+    <nav class="prof-navbar">
+      <a href="dashboard.html" class="navbar-brand"><div class="navbar-brand-icon">A</div><span class="navbar-brand-text">Acad<em>Portal</em></span></a>
+      <div class="navbar-nav">
+        <a href="dashboard.html" class="navbar-nav-link">🏠 Dashboard</a>
+        <a href="courses.html" class="navbar-nav-link">📘 Courses</a>
+        <a href="notes.html" class="navbar-nav-link">📚 Notes</a>
+        <a href="assignments.html" class="navbar-nav-link">📝 Assignments</a>
+        <a href="submissions.html" class="navbar-nav-link">📤 Submissions</a>
+        <a href="students.html" class="navbar-nav-link">👥 Students</a>
+        <a href="scores-archive.html" class="navbar-nav-link">🎯 Archive</a>
+        <a href="storage.html" class="navbar-nav-link active">💾 Storage</a>
+      </div>
+      <div class="navbar-right">
+        <div class="navbar-prof-badge"><div class="prof-avatar">P</div><div><span class="prof-name">Professor</span><span class="prof-role">Administrator</span></div></div>
+        <button class="navbar-logout-btn" onclick="handleLogout()">🚪 Logout</button>
+      </div>
+      <button class="navbar-mobile-toggle" onclick="toggleMobileNav()">☰</button>
+    </nav>
+    <div class="navbar-mobile-menu" id="mobile-nav">
+      <a href="dashboard.html" class="navbar-nav-link">🏠 Dashboard</a>
+      <a href="storage.html" class="navbar-nav-link active">💾 Storage</a>
+    </div>
+
+    <div class="prof-content">
+      <h2 class="section-title">💾 Storage Manager</h2>
+
+      <!-- Usage Meter -->
+      <div class="card" style="margin-bottom:24px">
+        <h3 style="margin-bottom:16px">Firebase Storage Usage</h3>
+        <div id="storage-loading" class="text-center" style="padding:20px"><div class="spinner-inline"></div></div>
+        <div id="storage-info" style="display:none">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:14px;font-weight:700;color:var(--text-mid)">Used Space</span>
+            <span style="font-size:18px;font-weight:800;color:var(--navy)" id="used-label">—</span>
+          </div>
+          <div class="storage-bar-wrap" style="height:16px">
+            <div class="storage-bar-fill" id="storage-bar" style="width:0%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px">
+            <span style="font-size:13px;color:var(--text-muted)" id="pct-label">0% of 5GB used</span>
+            <span style="font-size:13px;color:var(--text-muted)">Firebase Free Tier: 5 GB</span>
+          </div>
+          <div id="storage-warning" style="display:none;margin-top:12px"></div>
+        </div>
+      </div>
+
+      <!-- Breakdown Tabs -->
+      <div style="display:flex;gap:4px;margin-bottom:20px;background:var(--bg);padding:4px;border-radius:10px;width:fit-content">
+        <button class="btn btn-primary btn-sm" id="tab-notes-btn" onclick="switchTab('notes')">📚 Notes Files</button>
+        <button class="btn btn-outline btn-sm" id="tab-subs-btn" onclick="switchTab('submissions')">📤 Submission Files</button>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden">
+        <div id="storage-table">
+          <div class="text-center" style="padding:40px"><div class="spinner-inline"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { requireAuth, logoutUser } from "../js/auth.js";
+    import { getNotes, deleteNote, getSubmissions, deleteSubmission, getStorageStats } from "../js/professor.js";
+    import { showToast, showSpinner, hideSpinner, formatFileSize, formatDate, formatLevel, formatDateTime, confirmAction } from "../js/utils.js";
+
+    let allNotes = [], allSubs = [], currentTab = "notes";
+
+    async function init() {
+      try {
+        await requireAuth("professor");
+        const [stats, notes, subs] = await Promise.all([
+          getStorageStats(),
+          getNotes(),
+          getSubmissions()
+        ]);
+        allNotes = notes;
+        allSubs = subs;
+
+        // Render usage
+        document.getElementById("storage-loading").style.display = "none";
+        document.getElementById("storage-info").style.display = "block";
+        const pct = parseFloat(stats.percentUsed);
+        const bar = document.getElementById("storage-bar");
+        bar.style.width = pct + "%";
+        if (pct > 80) { bar.classList.add("danger"); document.getElementById("storage-warning").style.display = "block"; document.getElementById("storage-warning").innerHTML = `<div class="alert alert-danger">⚠️ Storage is above 80%! Delete old notes or submission files to free space.</div>`; }
+        else if (pct > 60) { bar.classList.add("warn"); document.getElementById("storage-warning").style.display = "block"; document.getElementById("storage-warning").innerHTML = `<div class="alert alert-warning">⚠️ Storage is above 60%. Monitor usage and delete files you no longer need.</div>`; }
+        document.getElementById("used-label").textContent = formatFileSize(stats.usedBytes);
+        document.getElementById("pct-label").textContent = `${pct}% of 5 GB used`;
+
+        renderTab("notes");
+      } catch(e) { console.error(e); }
+    }
+
+    function renderTab(tab) {
+      currentTab = tab;
+      document.getElementById("tab-notes-btn").className = tab === "notes" ? "btn btn-primary btn-sm" : "btn btn-outline btn-sm";
+      document.getElementById("tab-subs-btn").className = tab === "submissions" ? "btn btn-primary btn-sm" : "btn btn-outline btn-sm";
+
+      const el = document.getElementById("storage-table");
+
+      if (tab === "notes") {
+        const withFiles = allNotes.filter(n => n.filePath && n.fileName);
+        if (!withFiles.length) { el.innerHTML = `<div class="empty-state"><span class="empty-icon">📚</span><h4>No note files stored</h4><p>Notes without file attachments (links only) don't use storage.</p></div>`; return; }
+        el.innerHTML = `<div class="table-wrap" style="border:none;border-radius:0"><table>
+          <thead><tr><th>Note Title</th><th>Course</th><th>Level</th><th>File Name</th><th>Size</th><th>Uploaded</th><th>Action</th></tr></thead>
+          <tbody>${withFiles.map(n => `
+            <tr>
+              <td><strong>${n.title}</strong></td>
+              <td><span class="badge badge-navy">${n.courseCode}</span></td>
+              <td><span class="badge badge-gold" style="font-size:10px">${formatLevel(n.level)}</span></td>
+              <td style="font-size:12px">📄 ${n.fileName}</td>
+              <td style="font-size:13px;font-weight:700">${formatFileSize(n.fileSize)}</td>
+              <td style="font-size:12px">${formatDate(n.createdAt)}</td>
+              <td><button class="btn btn-danger btn-sm" onclick="removeNote('${n.id}','${n.title.replace(/'/g,"\\'")}')">🗑 Delete</button></td>
+            </tr>`).join("")}
+          </tbody></table></div>
+          <div style="padding:12px 16px;font-size:13px;color:var(--text-muted);border-top:1px solid var(--border)">
+            ${withFiles.length} file${withFiles.length !== 1 ? "s" : ""} · Total: ${formatFileSize(withFiles.reduce((s, n) => s + (n.fileSize || 0), 0))}
+          </div>`;
+      } else {
+        const withFiles = allSubs.filter(s => s.filePath && s.fileName);
+        if (!withFiles.length) { el.innerHTML = `<div class="empty-state"><span class="empty-icon">📤</span><h4>No submission files stored</h4><p>Text-only submissions don't use storage.</p></div>`; return; }
+        el.innerHTML = `<div class="table-wrap" style="border:none;border-radius:0"><table>
+          <thead><tr><th>Student</th><th>Assignment</th><th>Course</th><th>File</th><th>Size</th><th>Submitted</th><th>Action</th></tr></thead>
+          <tbody>${withFiles.map(s => `
+            <tr>
+              <td><strong>${s.studentName}</strong><div style="font-size:11px;color:var(--text-muted)">${s.matricNumber}</div></td>
+              <td style="font-size:12px">${s.assignmentTitle?.slice(0, 35) || "—"}</td>
+              <td><span class="badge badge-navy">${s.courseCode}</span></td>
+              <td style="font-size:12px">📎 ${s.fileName}</td>
+              <td style="font-size:13px;font-weight:700">${formatFileSize(s.fileSize)}</td>
+              <td style="font-size:12px">${formatDateTime(s.submittedAt)}</td>
+              <td><button class="btn btn-danger btn-sm" onclick="removeSub('${s.id}','${s.studentName.replace(/'/g,"\\'")}')">🗑 Delete</button></td>
+            </tr>`).join("")}
+          </tbody></table></div>
+          <div style="padding:12px 16px;font-size:13px;color:var(--text-muted);border-top:1px solid var(--border)">
+            ${withFiles.length} file${withFiles.length !== 1 ? "s" : ""} · Total: ${formatFileSize(withFiles.reduce((s, x) => s + (x.fileSize || 0), 0))}
+          </div>`;
+      }
+    }
+
+    window.switchTab = function(tab) { renderTab(tab); };
+
+    window.removeNote = function(id, title) {
+      confirmAction(`Delete note "${title}" and its file from storage? Students will no longer be able to download it.`, async () => {
+        showSpinner();
+        try {
+          await deleteNote(id);
+          hideSpinner();
+          showToast("Note deleted from storage.", "success");
+          allNotes = allNotes.filter(n => n.id !== id);
+          renderTab(currentTab);
+        } catch(e) { hideSpinner(); showToast(e.message, "error"); }
+      });
+    };
+
+    window.removeSub = function(id, name) {
+      confirmAction(`Delete submission file by "${name}"? The grade record will remain in the archive but the file will be gone.`, async () => {
+        showSpinner();
+        try {
+          await deleteSubmission(id);
+          hideSpinner();
+          showToast("Submission file deleted.", "success");
+          allSubs = allSubs.filter(s => s.id !== id);
+          renderTab(currentTab);
+        } catch(e) { hideSpinner(); showToast(e.message, "error"); }
+      });
+    };
+
+    window.handleLogout = async () => { await logoutUser(); window.location.href = "/professor/login.html"; };
+    window.toggleMobileNav = () => document.getElementById("mobile-nav").classList.toggle("open");
+    init();
+  </script>
+</body>
+</html>
