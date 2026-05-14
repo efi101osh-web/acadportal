@@ -38,29 +38,55 @@
     <div class="prof-content">
       <h2 class="section-title">💾 Storage Manager</h2>
 
-      <!-- Usage Meter -->
-      <div class="card" style="margin-bottom:24px">
-        <h3 style="margin-bottom:16px">Firebase Storage Usage</h3>
-        <div id="storage-loading" class="text-center" style="padding:20px"><div class="spinner-inline"></div></div>
-        <div id="storage-info" style="display:none">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <span style="font-size:14px;font-weight:700;color:var(--text-mid)">Used Space</span>
-            <span style="font-size:18px;font-weight:800;color:var(--navy)" id="used-label">—</span>
-          </div>
-          <div class="storage-bar-wrap" style="height:16px">
-            <div class="storage-bar-fill" id="storage-bar" style="width:0%"></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-top:8px">
-            <span style="font-size:13px;color:var(--text-muted)" id="pct-label">0% of 5GB used</span>
-            <span style="font-size:13px;color:var(--text-muted)">Firebase Free Tier: 5 GB</span>
-          </div>
-          <div id="storage-warning" style="display:none;margin-top:12px"></div>
+      <!-- Cloudinary Info Banner -->
+      <div class="alert alert-info" style="margin-bottom:24px;font-size:14px;line-height:1.7">
+        📦 <strong>Your files are stored on Cloudinary</strong> — a free cloud storage service with <strong>25GB free storage</strong>. 
+        To view, manage or delete uploaded files, visit your 
+        <a href="https://cloudinary.com/console/media_library" target="_blank" style="color:var(--navy);font-weight:700;text-decoration:underline">
+          Cloudinary Media Library →
+        </a>
+      </div>
+
+      <!-- Storage Stats -->
+      <div class="stat-grid" style="margin-bottom:28px">
+        <div class="stat-card">
+          <div class="stat-icon gold">📚</div>
+          <div class="stat-info"><div class="stat-value" id="notes-size">—</div><div class="stat-label">Notes Files Size</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon navy">📝</div>
+          <div class="stat-info"><div class="stat-value" id="assign-size">—</div><div class="stat-label">Assignment Files Size</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon success">📤</div>
+          <div class="stat-info"><div class="stat-value" id="sub-size">—</div><div class="stat-label">Submission Files Size</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon info">💾</div>
+          <div class="stat-info"><div class="stat-value" id="total-size">—</div><div class="stat-label">Total Used (of 25GB free)</div></div>
         </div>
       </div>
 
-      <!-- Breakdown Tabs -->
+      <!-- Storage Bar -->
+      <div class="card" style="margin-bottom:24px">
+        <h3 style="margin-bottom:16px">Cloudinary Storage Usage</h3>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:14px;font-weight:700;color:var(--text-mid)">Used Space</span>
+          <span style="font-size:16px;font-weight:800;color:var(--navy)" id="used-label">Calculating...</span>
+        </div>
+        <div class="storage-bar-wrap" style="height:16px">
+          <div class="storage-bar-fill" id="storage-bar" style="width:0%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px">
+          <span style="font-size:13px;color:var(--text-muted)" id="pct-label">0% used</span>
+          <span style="font-size:13px;color:var(--text-muted)">Free limit: 25 GB (Cloudinary)</span>
+        </div>
+      </div>
+
+      <!-- Tabs -->
       <div style="display:flex;gap:4px;margin-bottom:20px;background:var(--bg);padding:4px;border-radius:10px;width:fit-content">
         <button class="btn btn-primary btn-sm" id="tab-notes-btn" onclick="switchTab('notes')">📚 Notes Files</button>
+        <button class="btn btn-outline btn-sm" id="tab-assign-btn" onclick="switchTab('assignments')">📝 Assignment Files</button>
         <button class="btn btn-outline btn-sm" id="tab-subs-btn" onclick="switchTab('submissions')">📤 Submission Files</button>
       </div>
 
@@ -69,52 +95,75 @@
           <div class="text-center" style="padding:40px"><div class="spinner-inline"></div></div>
         </div>
       </div>
+
+      <!-- Cloudinary Management Link -->
+      <div class="card" style="margin-top:24px;background:linear-gradient(135deg,var(--navy-dark),var(--navy));border:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+          <div>
+            <h3 style="color:#fff;margin-bottom:6px;font-family:'Nunito',sans-serif;font-size:16px;font-weight:800">🗂️ Manage Files on Cloudinary</h3>
+            <p style="color:rgba(255,255,255,0.65);font-size:13px;margin:0">
+              To permanently delete files and free up storage space, go to your Cloudinary Media Library. 
+              Files are organized in the <strong style="color:var(--gold-light)">acadportal/</strong> folder.
+            </p>
+          </div>
+          <a href="https://cloudinary.com/console/media_library" target="_blank" class="btn btn-gold">
+            Open Cloudinary →
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 
   <script type="module">
     import { requireAuth, logoutUser } from "../js/auth.js";
-    import { getNotes, deleteNote, getSubmissions, deleteSubmission, getStorageStats } from "../js/professor.js";
-    import { showToast, showSpinner, hideSpinner, formatFileSize, formatDate, formatLevel, formatDateTime, confirmAction } from "../js/utils.js";
+    import { getNotes, getAssignments, getSubmissions, deleteNote } from "../js/professor.js";
+    import { formatFileSize, formatDate, formatDateTime, formatLevel, confirmAction, showToast, showSpinner, hideSpinner } from "../js/utils.js";
 
-    let allNotes = [], allSubs = [], currentTab = "notes";
+    let allNotes = [], allAssignments = [], allSubs = [], currentTab = "notes";
 
     async function init() {
       try {
         await requireAuth("professor");
-        const [stats, notes, subs] = await Promise.all([
-          getStorageStats(),
-          getNotes(),
-          getSubmissions()
+        [allNotes, allAssignments, allSubs] = await Promise.all([
+          getNotes(), getAssignments(), getSubmissions()
         ]);
-        allNotes = notes;
-        allSubs = subs;
-
-        // Render usage
-        document.getElementById("storage-loading").style.display = "none";
-        document.getElementById("storage-info").style.display = "block";
-        const pct = parseFloat(stats.percentUsed);
-        const bar = document.getElementById("storage-bar");
-        bar.style.width = pct + "%";
-        if (pct > 80) { bar.classList.add("danger"); document.getElementById("storage-warning").style.display = "block"; document.getElementById("storage-warning").innerHTML = `<div class="alert alert-danger">⚠️ Storage is above 80%! Delete old notes or submission files to free space.</div>`; }
-        else if (pct > 60) { bar.classList.add("warn"); document.getElementById("storage-warning").style.display = "block"; document.getElementById("storage-warning").innerHTML = `<div class="alert alert-warning">⚠️ Storage is above 60%. Monitor usage and delete files you no longer need.</div>`; }
-        document.getElementById("used-label").textContent = formatFileSize(stats.usedBytes);
-        document.getElementById("pct-label").textContent = `${pct}% of 5 GB used`;
-
+        renderStats();
         renderTab("notes");
       } catch(e) { console.error(e); }
+    }
+
+    function renderStats() {
+      const notesBytes = allNotes.reduce((s, n) => s + (n.fileSize || 0), 0);
+      const assignBytes = allAssignments.reduce((s, a) => s + (a.fileSize || 0), 0);
+      const subBytes = allSubs.reduce((s, x) => s + (x.fileSize || 0), 0);
+      const totalBytes = notesBytes + assignBytes + subBytes;
+      const limitBytes = 25 * 1024 * 1024 * 1024;
+      const pct = Math.min(100, (totalBytes / limitBytes) * 100).toFixed(2);
+
+      document.getElementById("notes-size").textContent = formatFileSize(notesBytes);
+      document.getElementById("assign-size").textContent = formatFileSize(assignBytes);
+      document.getElementById("sub-size").textContent = formatFileSize(subBytes);
+      document.getElementById("total-size").textContent = formatFileSize(totalBytes);
+      document.getElementById("used-label").textContent = formatFileSize(totalBytes) + " used";
+      document.getElementById("pct-label").textContent = pct + "% of 25GB used";
+
+      const bar = document.getElementById("storage-bar");
+      bar.style.width = pct + "%";
+      if (pct > 80) bar.classList.add("danger");
+      else if (pct > 60) bar.classList.add("warn");
     }
 
     function renderTab(tab) {
       currentTab = tab;
       document.getElementById("tab-notes-btn").className = tab === "notes" ? "btn btn-primary btn-sm" : "btn btn-outline btn-sm";
+      document.getElementById("tab-assign-btn").className = tab === "assignments" ? "btn btn-primary btn-sm" : "btn btn-outline btn-sm";
       document.getElementById("tab-subs-btn").className = tab === "submissions" ? "btn btn-primary btn-sm" : "btn btn-outline btn-sm";
 
       const el = document.getElementById("storage-table");
 
       if (tab === "notes") {
-        const withFiles = allNotes.filter(n => n.filePath && n.fileName);
-        if (!withFiles.length) { el.innerHTML = `<div class="empty-state"><span class="empty-icon">📚</span><h4>No note files stored</h4><p>Notes without file attachments (links only) don't use storage.</p></div>`; return; }
+        const withFiles = allNotes.filter(n => n.fileName);
+        if (!withFiles.length) { el.innerHTML = `<div class="empty-state"><span class="empty-icon">📚</span><h4>No note files uploaded yet</h4></div>`; return; }
         el.innerHTML = `<div class="table-wrap" style="border:none;border-radius:0"><table>
           <thead><tr><th>Note Title</th><th>Course</th><th>Level</th><th>File Name</th><th>Size</th><th>Uploaded</th><th>Action</th></tr></thead>
           <tbody>${withFiles.map(n => `
@@ -123,64 +172,77 @@
               <td><span class="badge badge-navy">${n.courseCode}</span></td>
               <td><span class="badge badge-gold" style="font-size:10px">${formatLevel(n.level)}</span></td>
               <td style="font-size:12px">📄 ${n.fileName}</td>
-              <td style="font-size:13px;font-weight:700">${formatFileSize(n.fileSize)}</td>
+              <td style="font-weight:700">${formatFileSize(n.fileSize)}</td>
               <td style="font-size:12px">${formatDate(n.createdAt)}</td>
-              <td><button class="btn btn-danger btn-sm" onclick="removeNote('${n.id}','${n.title.replace(/'/g,"\\'")}')">🗑 Delete</button></td>
+              <td>
+                <div style="display:flex;gap:6px">
+                  ${n.fileUrl ? `<a href="${n.fileUrl}" target="_blank" class="btn btn-outline btn-sm">👁 View</a>` : ""}
+                  <button class="btn btn-danger btn-sm" onclick="removeNote('${n.id}','${n.title.replace(/'/g,"\\'")}')">🗑 Delete</button>
+                </div>
+              </td>
             </tr>`).join("")}
           </tbody></table></div>
           <div style="padding:12px 16px;font-size:13px;color:var(--text-muted);border-top:1px solid var(--border)">
             ${withFiles.length} file${withFiles.length !== 1 ? "s" : ""} · Total: ${formatFileSize(withFiles.reduce((s, n) => s + (n.fileSize || 0), 0))}
           </div>`;
-      } else {
-        const withFiles = allSubs.filter(s => s.filePath && s.fileName);
-        if (!withFiles.length) { el.innerHTML = `<div class="empty-state"><span class="empty-icon">📤</span><h4>No submission files stored</h4><p>Text-only submissions don't use storage.</p></div>`; return; }
+
+      } else if (tab === "assignments") {
+        const withFiles = allAssignments.filter(a => a.fileName);
+        if (!withFiles.length) { el.innerHTML = `<div class="empty-state"><span class="empty-icon">📝</span><h4>No assignment files uploaded yet</h4></div>`; return; }
         el.innerHTML = `<div class="table-wrap" style="border:none;border-radius:0"><table>
-          <thead><tr><th>Student</th><th>Assignment</th><th>Course</th><th>File</th><th>Size</th><th>Submitted</th><th>Action</th></tr></thead>
+          <thead><tr><th>Assignment Title</th><th>Course</th><th>Level</th><th>File Name</th><th>Size</th><th>Created</th></tr></thead>
+          <tbody>${withFiles.map(a => `
+            <tr>
+              <td><strong>${a.title}</strong></td>
+              <td><span class="badge badge-navy">${a.courseCode}</span></td>
+              <td><span class="badge badge-gold" style="font-size:10px">${formatLevel(a.level)}</span></td>
+              <td style="font-size:12px">📎 ${a.fileName}</td>
+              <td style="font-weight:700">${formatFileSize(a.fileSize)}</td>
+              <td style="font-size:12px">${formatDate(a.createdAt)}</td>
+            </tr>`).join("")}
+          </tbody></table></div>
+          <div style="padding:12px 16px;font-size:13px;color:var(--text-muted);border-top:1px solid var(--border)">
+            ${withFiles.length} file${withFiles.length !== 1 ? "s" : ""} · Total: ${formatFileSize(withFiles.reduce((s, a) => s + (a.fileSize || 0), 0))}
+            · <a href="https://cloudinary.com/console/media_library" target="_blank" style="color:var(--navy-light);font-weight:700">Delete files on Cloudinary →</a>
+          </div>`;
+
+      } else {
+        const withFiles = allSubs.filter(s => s.fileName);
+        if (!withFiles.length) { el.innerHTML = `<div class="empty-state"><span class="empty-icon">📤</span><h4>No submission files yet</h4></div>`; return; }
+        el.innerHTML = `<div class="table-wrap" style="border:none;border-radius:0"><table>
+          <thead><tr><th>Student</th><th>Assignment</th><th>Course</th><th>File</th><th>Size</th><th>Submitted</th></tr></thead>
           <tbody>${withFiles.map(s => `
             <tr>
               <td><strong>${s.studentName}</strong><div style="font-size:11px;color:var(--text-muted)">${s.matricNumber}</div></td>
-              <td style="font-size:12px">${s.assignmentTitle?.slice(0, 35) || "—"}</td>
+              <td style="font-size:12px">${s.assignmentTitle?.slice(0,35) || "—"}</td>
               <td><span class="badge badge-navy">${s.courseCode}</span></td>
               <td style="font-size:12px">📎 ${s.fileName}</td>
-              <td style="font-size:13px;font-weight:700">${formatFileSize(s.fileSize)}</td>
+              <td style="font-weight:700">${formatFileSize(s.fileSize)}</td>
               <td style="font-size:12px">${formatDateTime(s.submittedAt)}</td>
-              <td><button class="btn btn-danger btn-sm" onclick="removeSub('${s.id}','${s.studentName.replace(/'/g,"\\'")}')">🗑 Delete</button></td>
             </tr>`).join("")}
           </tbody></table></div>
           <div style="padding:12px 16px;font-size:13px;color:var(--text-muted);border-top:1px solid var(--border)">
             ${withFiles.length} file${withFiles.length !== 1 ? "s" : ""} · Total: ${formatFileSize(withFiles.reduce((s, x) => s + (x.fileSize || 0), 0))}
+            · <a href="https://cloudinary.com/console/media_library" target="_blank" style="color:var(--navy-light);font-weight:700">Delete files on Cloudinary →</a>
           </div>`;
       }
     }
 
-    window.switchTab = function(tab) { renderTab(tab); };
-
     window.removeNote = function(id, title) {
-      confirmAction(`Delete note "${title}" and its file from storage? Students will no longer be able to download it.`, async () => {
+      confirmAction(`Delete note "${title}"? The file will be removed from the database. To fully delete from Cloudinary storage, go to your Media Library.`, async () => {
         showSpinner();
         try {
           await deleteNote(id);
           hideSpinner();
-          showToast("Note deleted from storage.", "success");
+          showToast("Note deleted.", "success");
           allNotes = allNotes.filter(n => n.id !== id);
+          renderStats();
           renderTab(currentTab);
         } catch(e) { hideSpinner(); showToast(e.message, "error"); }
       });
     };
 
-    window.removeSub = function(id, name) {
-      confirmAction(`Delete submission file by "${name}"? The grade record will remain in the archive but the file will be gone.`, async () => {
-        showSpinner();
-        try {
-          await deleteSubmission(id);
-          hideSpinner();
-          showToast("Submission file deleted.", "success");
-          allSubs = allSubs.filter(s => s.id !== id);
-          renderTab(currentTab);
-        } catch(e) { hideSpinner(); showToast(e.message, "error"); }
-      });
-    };
-
+    window.switchTab = function(tab) { renderTab(tab); };
     window.handleLogout = async () => { await logoutUser(); window.location.href = "/professor/login.html"; };
     window.toggleMobileNav = () => document.getElementById("mobile-nav").classList.toggle("open");
     init();
