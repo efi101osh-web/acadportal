@@ -12,7 +12,7 @@ import {
   doc, query, where, orderBy, serverTimestamp, getDoc,
   setDoc, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { showToast, validateFile, showSpinner, hideSpinner } from "./utils.js";
+// utils imported only where needed per function — no direct imports needed here
 
 // =============================================
 // COURSES MANAGEMENT
